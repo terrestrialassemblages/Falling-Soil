@@ -1,0 +1,97 @@
+html, body {
+  /* height: 100%; */
+  /* margin: 10;
+  padding: 10; */
+  background-color: #131622;
+  color: beige;
+  font-size:14px;
+}
+
+a:link{
+  color:antiquewhite;
+}
+
+body {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+
+  justify-items: space-evenly;
+
+  align-items: center;
+}
+
+canvas {
+  display: block;
+}
+
+[id=gui-div] {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+  max-width: 600px;
+}
+
+.button-row {
+  margin: auto;
+  display: inline-flex;
+  flex-direction: row;
+
+  align-items: space-around;
+}
+
+.button-row * {
+  padding: 5px;
+  margin: auto;
+}
+
+.button-column {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+
+  /* align-items: space-around; */
+}
+
+.button-column * {
+  padding: auto;
+  margin: auto;
+}
+
+:root {
+  --button-bg-color: #202020;
+  --button-checked-color: #383838;
+  --button-border-width: 2px;
+}
+
+input[type=radio] {
+  position: absolute;
+  visibility: hidden;
+  display: none;
+}
+
+label {
+  display: inline-flex;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+input[type=radio]:checked + label{
+  background: var(--button-checked-color)
+}
+
+input[type=radio] + label {
+  border-left: solid var(--button-border-width) var(--button-checked-color);
+  border-bottom: solid var(--button-border-width) var(--button-checked-color);
+  border-top: solid var(--button-border-width) var(--button-checked-color);
+}
+.radio-group {
+  border: solid var(--button-border-width) var(--button-checked-color);
+  display: inline-block;
+  margin: 5px;
+  overflow: hidden;
+}
