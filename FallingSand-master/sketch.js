@@ -33,6 +33,7 @@ const PLACEABLE_TYPES = {
 	'Stone Wall': WallParticle,
 	'Wood Wall': WoodParticle,
 	'Sand': SandParticle,
+	'Soil' : SoilParticle,
 	'Water': WaterParticle,
 	'Steam': SteamParticle,
 	'Plant': PlantParticle,

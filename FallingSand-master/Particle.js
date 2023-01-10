@@ -1,4 +1,4 @@
-class Particle extends Placeable{
+class Particle extends Placeable {
 
     static BASE_COLOR = '#FFFFFF';
     static BURNING_COLOR = '#E65C00';
@@ -256,11 +256,11 @@ class MoveableParticle extends Particle {
                 otherParticle.x + p[0],
                 otherParticle.y + p[1],
                 false
-                );
-                if (moved) {
-                    break;
-                }
+            );
+            if (moved) {
+                break;
             }
+        }
 
         let otherX = otherParticle.x;
         let otherY = otherParticle.y;
@@ -321,6 +321,17 @@ class SandParticle extends MoveableParticle {
     }
 }
 
+class SoilParticle extends SandParticle {
+    static BASE_COLOR = '#755127';
+    constructor(x, y, world) {
+        super(x, y, world);
+
+        if(random() > 0.5){
+            this.weight = 55;
+        }
+    }
+}
+
 class PlantParticle extends Particle {
 
     static BASE_COLOR = '#338A1B';
@@ -369,14 +380,14 @@ class PlantParticle extends Particle {
         } else {
             d = random(this.neighbourList.slice(0, 3));
         }
-        
+
         //get new positions and particle
         let xn = this.x + d[0];
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
         if (this.watered) {
-            if (!neighbour) {
+            if (!neighbour || neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many neighbours
                 let count = 0;
@@ -390,6 +401,9 @@ class PlantParticle extends Particle {
                 }
                 //if the plant particle has already grown 2 times, don't grow
                 if (count < 2) {
+                    if (neighbour instanceof SoilParticle) {
+                        neighbour.delete();
+                    }
                     // If it doesn't, grow into it
                     if (random() > 0.5) {
                         this.world.addParticle(new PlantParticle(xn, yn, this.world));
@@ -448,14 +462,14 @@ class RootParticle extends PlantParticle {
         } else {
             d = random(this.neighbourList.slice(0, 3));
         }
-        
+
         //get new positions and particle
         let xn = this.x + d[0];
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
         if (this.watered) {
-            if (!neighbour) {
+            if (!neighbour || neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many neighbours
                 let count = 0;
@@ -469,6 +483,9 @@ class RootParticle extends PlantParticle {
                 }
                 //if the plant particle has already grown 2 times, don't grow
                 if (count < 2) {
+                    if (neighbour instanceof SoilParticle) {
+                        neighbour.delete();
+                    }
                     // If it doesn't, grow into it
                     if (random() > 0.5) {
                         this.world.addParticle(new RootParticle(xn, yn, this.world));
