@@ -283,6 +283,56 @@ class MoveableParticle extends Particle {
     }
 }
 
+class BacteriaParticle extends Particle {
+    constructor(x, y, world){
+        super(x, y, world);
+        //does the bacteria have nutrients to share with the plant?
+        let fixation = false;
+
+        this.neighbourList = [
+            [0, -1],
+            [-1, -1],
+            [+1, -1],
+            [+1, +1],
+            [0, +1],
+            [-1, +1],
+            [+1, 0],
+            [-1, 0]
+        ]
+    }
+
+    update() {
+        //choose a random direction
+        let d = random(this.neighbourList);
+
+        //get new positions and particle
+        let xn = this.x + d[0];
+        let yn = this.y + d[1];
+        let neighbour = this.world.getParticle(xn, yn);
+
+        if(neighbour instanceof SoilParticle){
+            //what is the soil like?
+            let soilState = neighbour.state;
+            let bacteriaState = this.fixation;
+            neighbour.delete();
+            this.delete();
+
+            this.world.addParticle(new BacteriaParticle(xn, yn, this.world));
+            this.world.addParticle(new SoilParticle(this.x, this.y, this.world));
+            // let newParticle = this.world.getParticle(this.x, this.y);
+
+            // newParticle.setState('poor');
+
+            // if(bacteriaState == true || soilState == 'healthy'){
+            //     this.world.getParticle(xn, yn).fixation = true;
+            // }
+
+        }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle){
+            //transfer nutrients
+        }
+    }
+}
+
 class SandParticle extends MoveableParticle {
 
     static BASE_COLOR = '#e5b55f';
@@ -325,9 +375,22 @@ class SoilParticle extends SandParticle {
     static BASE_COLOR = '#755127';
     constructor(x, y, world) {
         super(x, y, world);
+        let state;
 
         if(random() > 0.5){
+            state = 'healthy';
+        }else{
+            state = 'poor';
+        }
+
+        this.setState(state);
+    }
+
+    setState(ns){
+        if(ns == 'healthy'){
             this.weight = 55;
+        }else if (random() < 0.5){
+            this.weight = 90;
         }
     }
 }

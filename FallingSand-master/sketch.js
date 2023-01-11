@@ -38,6 +38,7 @@ const PLACEABLE_TYPES = {
 	'Steam': SteamParticle,
 	'Plant': PlantParticle,
 	'Root' : RootParticle,
+	'Bacteria' : BacteriaParticle,
 	'Flame': FlameParticle,
 	'Gasoline': GasolineParticle,
 	'Hydrogen': HydrogenParticle,
