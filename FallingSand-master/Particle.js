@@ -114,15 +114,15 @@ class WallParticle extends Particle {
 }
 
 
-class WoodParticle extends Particle {
-    static BASE_COLOR = '#C17736'
+// class WoodParticle extends Particle {
+//     static BASE_COLOR = '#C17736'
 
-    constructor(x, y, world) {
-        super(x, y, world);
-        this.flammability = 0.1;
-        this.fuel = 200;
-    }
-}
+//     constructor(x, y, world) {
+//         super(x, y, world);
+//         this.flammability = 0.1;
+//         this.fuel = 200;
+//     }
+// }
 
 
 class IndestructibleWallParticle extends WallParticle {
@@ -139,39 +139,39 @@ class IndestructibleWallParticle extends WallParticle {
 }
 
 
-class FlameParticle extends Particle {
-    static BASE_COLOR = '#ff7700'
-    static BURNING_COLOR = '#ff7700'
+// class FlameParticle extends Particle {
+//     static BASE_COLOR = '#ff7700'
+//     static BURNING_COLOR = '#ff7700'
 
-    constructor(x, y, world, fuel = 0) {
-        super(x, y, world);
-        this.fuel = fuel;
-        this.burning = true;
-        this.fresh = true;
-        this.color = this.constructor.BASE_COLOR;
-    }
+//     constructor(x, y, world, fuel = 0) {
+//         super(x, y, world);
+//         this.fuel = fuel;
+//         this.burning = true;
+//         this.fresh = true;
+//         this.color = this.constructor.BASE_COLOR;
+//     }
 
-    update() {
-        // this.color = adjustHSBofString(this.constructor.BASE_COLOR,
-        //     random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
+//     update() {
+//         // this.color = adjustHSBofString(this.constructor.BASE_COLOR,
+//         //     random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
 
-        if (!this.fresh) {
-            super.update();
-        }
-        else {
-            this.fresh = false;
-        }
+//         if (!this.fresh) {
+//             super.update();
+//         }
+//         else {
+//             this.fresh = false;
+//         }
 
-        if (!this.burning) {
-            this.delete();
-        }
-    }
+//         if (!this.burning) {
+//             this.delete();
+//         }
+//     }
 
-    burningFlickerColor() {
-        return adjustHSBofString(this.constructor.BURNING_COLOR,
-            random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
-    }
-}
+//     burningFlickerColor() {
+//         return adjustHSBofString(this.constructor.BURNING_COLOR,
+//             random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
+//     }
+// }
 
 
 class MoveableParticle extends Particle {
@@ -290,14 +290,14 @@ class BacteriaParticle extends Particle {
         let fixation = false;
 
         this.neighbourList = [
-            [0, -1],
-            [-1, -1],
-            [+1, -1],
-            [+1, +1],
-            [0, +1],
-            [-1, +1],
-            [+1, 0],
-            [-1, 0]
+            [0, -1], //up
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, +1], //down right
+            [0, +1], //down
+            [-1, +1], //down left
+            [+1, 0], //right
+            [-1, 0] //left
         ]
     }
 
@@ -314,11 +314,8 @@ class BacteriaParticle extends Particle {
             //what is the soil like?
             let soilState = neighbour.state;
             let bacteriaState = this.fixation;
-            neighbour.delete();
-            this.delete();
-
-            this.world.addParticle(new BacteriaParticle(xn, yn, this.world));
-            this.world.addParticle(new SoilParticle(this.x, this.y, this.world));
+            this.world.addParticle(new BacteriaParticle(xn, yn, this.world), true);
+            this.world.addParticle(new SoilParticle(this.x, this.y, this.world), true);
             // let newParticle = this.world.getParticle(this.x, this.y);
 
             // newParticle.setState('poor');
@@ -373,9 +370,15 @@ class SandParticle extends MoveableParticle {
 
 class SoilParticle extends SandParticle {
     static BASE_COLOR = '#755127';
+
     constructor(x, y, world) {
         super(x, y, world);
         let state;
+        let watered;
+        this.watered = 0;
+        this.color_healthy = this.color;
+        this.color_poor = adjustHSBofString(this.color, 0.5, 1, 1);
+        this.weight = 50;
 
         if(random() > 0.5){
             state = 'healthy';
@@ -387,10 +390,96 @@ class SoilParticle extends SandParticle {
     }
 
     setState(ns){
+        this.state = ns;
         if(ns == 'healthy'){
-            this.weight = 55;
+            if(this.watered > 0){
+                this.color = adjustHSBofString(this.color_healthy, pow(0.9, this.watered), pow(1.1, this.watered), pow(0.9, this.watered))
+            }else{
+                this.color = this.color_healthy;
+            }
         }else if (random() < 0.5){
-            this.weight = 90;
+            if(this.watered > 0){
+                this.color = adjustHSBofString(this.color_poor, pow(0.9, this.watered), pow(1.1, this.watered), pow(0.9, this.watered));
+            }else{
+                this.color = this.color_poor;
+            }
+        }
+    }
+
+    getWater(){
+        return this.watered;
+    }
+
+    setWater(nw){
+        this.color = adjustHSBofString(this.color, 0.9, 1.1, 0.9);
+        this.watered = this.watered + nw;
+    }
+
+    update(){
+        super.update();
+    }
+}
+
+class Syn_FertParticle extends SandParticle {
+    static BASE_COLOR = '#4f7052';
+    constructor(x, y, world) {
+        super(x, y, world);
+        this.weight = 53;
+
+        this.neighbourList = [
+            [+0, +1],
+            [-1, +1],
+            [+1, +1]
+        ]
+    }
+
+    update(){
+        super.update();
+        for(let i = 0; i < this.neighbourList.length; i++) {
+            let dn = this.neighbourList[i];
+            let xnn = this.x + dn[0];
+            let ynn = this.y + dn[1];
+            let neighbour = this.world.getParticle(xnn, ynn);
+
+            if(random() < 0.3 && neighbour instanceof SoilParticle){
+                if(neighbour.state == 'healthy'){
+                    neighbour.setState('poor');
+                    this.delete();
+                    break;
+                }
+            }
+        }
+    }
+}
+
+class Org_FertParticle extends SandParticle {
+    static BASE_COLOR = '#705d4f';
+    constructor(x, y, world) {
+        super(x, y, world);
+        this.weight = 54;
+
+        this.neighbourList = [
+            [+0, +1],
+            [-1, +1],
+            [+1, +1]
+        ]
+    }
+
+    update(){
+        super.update();
+        for(let i = 0; i < this.neighbourList.length; i++) {
+            let dn = this.neighbourList[i];
+            let xnn = this.x + dn[0];
+            let ynn = this.y + dn[1];
+            let neighbour = this.world.getParticle(xnn, ynn);
+
+            if(random() < 0.3 && neighbour instanceof SoilParticle){
+                if(neighbour.state == 'poor'){
+                    neighbour.setState('healthy');
+                    this.delete();
+                    break;
+                }
+            }
         }
     }
 }
@@ -505,15 +594,16 @@ class RootParticle extends PlantParticle {
         super(x, y, world);
 
         this.neighbourList = [
-            [0, +1],
-            [+1, +1],
-            [-1, +1],
+            [0, +1], //down
+            [+1, +1], //
+            [-1, +1], 
+
+            [+1, 0],
+            [-1, 0],
 
             [0, -1],
-            [-1, -1],
             [+1, -1],
-            [+1, 0],
-            [-1, 0]
+            [-1, -1]
         ]
     }
 
@@ -532,7 +622,7 @@ class RootParticle extends PlantParticle {
         let neighbour = this.world.getParticle(xn, yn);
 
         if (this.watered) {
-            if (!neighbour || neighbour instanceof SoilParticle) {
+            if (neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many neighbours
                 let count = 0;
@@ -544,20 +634,42 @@ class RootParticle extends PlantParticle {
                         count++;
                     }
                 }
+                
                 //if the plant particle has already grown 2 times, don't grow
                 if (count < 2) {
                     if (neighbour instanceof SoilParticle) {
                         neighbour.delete();
                     }
-                    // If it doesn't, grow into it
+                    // grow into it
                     if (random() > 0.5) {
                         this.world.addParticle(new RootParticle(xn, yn, this.world));
                         this.watered = false;
                     }
                 }
+                //if you haven't grown, give your water upwards instead
+                
             }
-            //if the place you want to grow has a plant particle there
-            //give it your watered state
+
+            // else {
+            //     for (let i = 0; i < 3; i++){
+            //         //upwards pixels
+            //         let dn = this.neighbourList[5 + i];
+            //         let xnn = xn + dn[0];
+            //         let ynn = yn + dn[1];
+
+            //         let neighbour = this.world.getParticle(xnn, ynn);
+            //         if ((neighbour instanceof RootParticle) && !neighbour.watered) {
+            //             neighbour.watered = true;
+            //             this.watered = false;
+            //             print('giving to root');
+            //         }else if(neighbour instanceof PlantParticle && !neighbour.watered){
+            //             neighbour.watered = true;
+            //             this.watered = false;
+            //             print(neighbour.watered, this.watered);
+            //         }
+            //     }
+            // }
+            
             else if (neighbour instanceof PlantParticle || neighbour instanceof RootParticle) {
                 if (!neighbour.watered) {
                     neighbour.watered = true;
@@ -568,28 +680,27 @@ class RootParticle extends PlantParticle {
         }
         else {
             // If we're not watered look for water
-            if (neighbour instanceof WaterParticle) {
+            if (neighbour instanceof SoilParticle && neighbour.getWater() > 0) {
                 // if the random neighbour is water, delete it and we are now watered
-                neighbour.delete();
+                neighbour.setWater(-1);
                 this.watered = true;
             }
         }
 
-        super.update();
     }
 
 }
 
 
-class GunpowderParticle extends SandParticle {
-    static BASE_COLOR = '#222222'
+// class GunpowderParticle extends SandParticle {
+//     static BASE_COLOR = '#222222'
 
-    constructor(x, y, world) {
-        super(x, y, world);
-        this.flammability = 0.7;
-        this.fuel = 25;
-    }
-}
+//     constructor(x, y, world) {
+//         super(x, y, world);
+//         this.flammability = 0.7;
+//         this.fuel = 25;
+//     }
+// }
 
 
 class FluidParticle extends MoveableParticle {
@@ -644,10 +755,28 @@ class WaterParticle extends FluidParticle {
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = 60;
+        this.neighbourList = [
+            [+0, +1],
+            [-1, +1],
+            [+1, +1]
+        ]
     }
 
     update() {
         super.update(true);
+        for(let i = 0; i < this.neighbourList.length; i++) {
+            let dn = this.neighbourList[i];
+            let xnn = this.x + dn[0];
+            let ynn = this.y + dn[1];
+            let neighbour = this.world.getParticle(xnn, ynn);
+
+            if(neighbour instanceof SoilParticle && neighbour.getWater() < 2 && random() < 0.2){
+                neighbour.setWater(1);
+                this.delete();
+                break;
+                
+            }
+        }
     }
 
     evaporate() {
@@ -689,35 +818,35 @@ class SteamParticle extends FluidParticle {
 }
 
 
-class HydrogenParticle extends FluidParticle {
-    static BASE_COLOR = '#9379a8';
+// class HydrogenParticle extends FluidParticle {
+//     static BASE_COLOR = '#9379a8';
 
-    constructor(x, y, world) {
-        super(x, y, world);
-        this.weight = 0.2;
-        this.flammability = 0.95;
-        this.fuel = 6;
-    }
+//     constructor(x, y, world) {
+//         super(x, y, world);
+//         this.weight = 0.2;
+//         this.flammability = 0.95;
+//         this.fuel = 6;
+//     }
 
-    update() {
-        super.update(true);
-    }
-}
+//     update() {
+//         super.update(true);
+//     }
+// }
 
-class GasolineParticle extends FluidParticle {
-    static BASE_COLOR = '#6922A2'
+// class GasolineParticle extends FluidParticle {
+//     static BASE_COLOR = '#6922A2'
 
-    constructor(x, y, world) {
-        super(x, y, world);
-        this.weight = 50;
-        this.flammability = 0.95;
-        this.fuel = 15;
-    }
+//     constructor(x, y, world) {
+//         super(x, y, world);
+//         this.weight = 50;
+//         this.flammability = 0.95;
+//         this.fuel = 15;
+//     }
 
-    update() {
-        super.update(true);
-    }
-}
+//     update() {
+//         super.update(true);
+//     }
+// }
 
 
 adjustHSBofString = function (colorString, scaleH, scaleS, scaleB) {
