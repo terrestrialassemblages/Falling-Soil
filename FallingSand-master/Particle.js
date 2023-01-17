@@ -415,8 +415,13 @@ class SoilParticle extends SandParticle {
 
     setWater(nw){
         //everytime water gets more saturated, the colour changes a little
-        this.color = adjustHSBofString(this.color, 0.9, 1.1, 0.9);
+        if(nw == 1){
+            this.color = adjustHSBofString(this.color, 0.9, 1.1, 0.9);
+        }else{
+            this.color = adjustHSBofString(this.color, 1.1, 0.9, 1.1);
+        }
         this.watered = this.watered + nw;
+      
     }
 
     update(){
@@ -428,8 +433,8 @@ class Syn_FertParticle extends SandParticle {
     static BASE_COLOR = '#4f7052';
     constructor(x, y, world) {
         super(x, y, world);
-        //slightly heavier than soil
-        this.weight = 53;
+        //lighter than soil so it sits on top
+        this.weight = 45;
 
         //downwards positions to tell if there is soil to change
         this.neighbourList = [
@@ -463,8 +468,8 @@ class Org_FertParticle extends SandParticle {
     static BASE_COLOR = '#705d4f';
     constructor(x, y, world) {
         super(x, y, world);
-        //slightly heavier than soil and synthetic fert
-        this.weight = 54;
+        //lighter than soil so it sits on top
+        this.weight = 45;
 
         this.neighbourList = [
             [+0, +1], //down
@@ -736,9 +741,14 @@ class WaterParticle extends FluidParticle {
         super(x, y, world);
         this.weight = 60;
         this.neighbourList = [
-            [+0, +1], //down
+            [0, -1], //up
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, +1], //down right
+            [0, +1], //down
             [-1, +1], //down left
-            [+1, +1] //down right
+            [+1, 0], //right
+            [-1, 0] //left
         ]
     }
 
@@ -752,11 +762,10 @@ class WaterParticle extends FluidParticle {
 
             //if the nearest neighbour is soil and it's saturation level is less than 2
             //saturate it and delete this particle
-            if(neighbour instanceof SoilParticle && neighbour.getWater() < 2){
+            if((neighbour instanceof SoilParticle && neighbour.getWater() < 2 && neighbour.state == 'healthy') || (neighbour.state == 'poor' && random < 0.3)){
                 neighbour.setWater(1);
                 this.delete();
                 break;
-                
             }
         }
     }
