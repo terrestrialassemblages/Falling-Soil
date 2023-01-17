@@ -37,7 +37,6 @@ const PLACEABLE_TYPES = {
 	'Water': WaterParticle,
 	'Steam': SteamParticle,
 	'Plant': PlantParticle,
-	'Root' : RootParticle,
 	'Bacteria' : BacteriaParticle,
 	'Synthetic Fertiliser' : Syn_FertParticle,
 	'Organic Fertiliser' : Org_FertParticle,
@@ -287,9 +286,20 @@ handleMouseClick = function () {
 							}
 						}
 						else {
-							world.addPlaceable(
-								new PLACEABLE_TYPES[action](ix, iy, world),
-								brushReplaceCheckbox.checked());
+							//placing the plant and root next to each other
+							if(action == 'Plant'){
+								let plant = new PLACEABLE_TYPES[action](ix, iy, world);
+								world.addPlaceable(
+									plant,
+									brushReplaceCheckbox.checked());
+								world.addPlaceable(
+									new RootParticle(plant, ix, iy + 1, world),
+									brushReplaceCheckbox.checked());
+							}else{
+								world.addPlaceable(
+									new PLACEABLE_TYPES[action](ix, iy, world),
+									brushReplaceCheckbox.checked());
+							}
 						}
 					}
 				}

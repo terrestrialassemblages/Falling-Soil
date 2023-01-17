@@ -287,7 +287,7 @@ class BacteriaParticle extends Particle {
     constructor(x, y, world){
         super(x, y, world);
         //does the bacteria have nutrients to share with the plant?
-        let fixation = false;
+        this.fixation = false;
 
         this.neighbourList = [
             [0, -1], //up
@@ -314,6 +314,8 @@ class BacteriaParticle extends Particle {
             //what is the soil like?
             let soilState = neighbour.state;
             let bacteriaState = this.fixation;
+
+            //move the bacteria into a = new place
             this.world.addParticle(new BacteriaParticle(xn, yn, this.world), true);
             this.world.addParticle(new SoilParticle(this.x, this.y, this.world), true);
             // let newParticle = this.world.getParticle(this.x, this.y);
@@ -374,10 +376,10 @@ class SoilParticle extends SandParticle {
     constructor(x, y, world) {
         super(x, y, world);
         let state;
-        let watered;
         this.watered = 0;
         this.color_healthy = this.color;
         this.color_poor = adjustHSBofString(this.color, 0.5, 1, 1);
+        //lighter than water
         this.weight = 50;
 
         if(random() > 0.5){
@@ -392,6 +394,7 @@ class SoilParticle extends SandParticle {
     setState(ns){
         this.state = ns;
         if(ns == 'healthy'){
+            //healthy and compacted dirt have saturation colourings relative to their states
             if(this.watered > 0){
                 this.color = adjustHSBofString(this.color_healthy, pow(0.9, this.watered), pow(1.1, this.watered), pow(0.9, this.watered))
             }else{
@@ -411,6 +414,7 @@ class SoilParticle extends SandParticle {
     }
 
     setWater(nw){
+        //everytime water gets more saturated, the colour changes a little
         this.color = adjustHSBofString(this.color, 0.9, 1.1, 0.9);
         this.watered = this.watered + nw;
     }
@@ -424,12 +428,14 @@ class Syn_FertParticle extends SandParticle {
     static BASE_COLOR = '#4f7052';
     constructor(x, y, world) {
         super(x, y, world);
+        //slightly heavier than soil
         this.weight = 53;
 
+        //downwards positions to tell if there is soil to change
         this.neighbourList = [
-            [+0, +1],
-            [-1, +1],
-            [+1, +1]
+            [+0, +1], //down
+            [-1, +1], //down left
+            [+1, +1] //down right
         ]
     }
 
@@ -442,6 +448,7 @@ class Syn_FertParticle extends SandParticle {
             let neighbour = this.world.getParticle(xnn, ynn);
 
             if(random() < 0.3 && neighbour instanceof SoilParticle){
+                //if the nearest soil is healthy, turn it poor
                 if(neighbour.state == 'healthy'){
                     neighbour.setState('poor');
                     this.delete();
@@ -456,12 +463,13 @@ class Org_FertParticle extends SandParticle {
     static BASE_COLOR = '#705d4f';
     constructor(x, y, world) {
         super(x, y, world);
+        //slightly heavier than soil and synthetic fert
         this.weight = 54;
 
         this.neighbourList = [
-            [+0, +1],
-            [-1, +1],
-            [+1, +1]
+            [+0, +1], //down
+            [-1, +1], //down left
+            [+1, +1] //down right
         ]
     }
 
@@ -474,6 +482,7 @@ class Org_FertParticle extends SandParticle {
             let neighbour = this.world.getParticle(xnn, ynn);
 
             if(random() < 0.3 && neighbour instanceof SoilParticle){
+                //if the soil is poor, turn it healthy
                 if(neighbour.state == 'poor'){
                     neighbour.setState('healthy');
                     this.delete();
@@ -496,9 +505,10 @@ class PlantParticle extends Particle {
         this.fuel = 35;
 
         this.neighbourList = [
-            [0, -1],
-            [-1, -1],
-            [+1, -1],
+            //growth directions
+            [0, -1], //up
+            [-1, -1], //up left
+            [+1, -1], //up right
 
             [+1, +1],
             [0, +1],
@@ -541,7 +551,7 @@ class PlantParticle extends Particle {
         if (this.watered) {
             if (!neighbour || neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
-                // many neighbours
+                // many plant neighbours
                 let count = 0;
                 for (let i = 0; i < this.neighbourList.length; i++) {
                     let dn = this.neighbourList[i];
@@ -553,10 +563,6 @@ class PlantParticle extends Particle {
                 }
                 //if the plant particle has already grown 2 times, don't grow
                 if (count < 2) {
-                    if (neighbour instanceof SoilParticle) {
-                        neighbour.delete();
-                    }
-                    // If it doesn't, grow into it
                     if (random() > 0.5) {
                         this.world.addParticle(new PlantParticle(xn, yn, this.world));
                         this.watered = false;
@@ -573,14 +579,6 @@ class PlantParticle extends Particle {
             }
 
         }
-        else {
-            // If we're not watered look for water
-            if (neighbour instanceof WaterParticle) {
-                // if the random neighbour is water, delete it and we are now watered
-                neighbour.delete();
-                this.watered = true;
-            }
-        }
 
         super.update();
     }
@@ -590,17 +588,19 @@ class RootParticle extends PlantParticle {
 
     static BASE_COLOR = '#828051';
 
-    constructor(x, y, world) {
+    constructor(previous, x, y, world) {
         super(x, y, world);
 
+        //previous particle kept to give water
+        this.prev = previous;
         this.neighbourList = [
+            //growth positions
             [0, +1], //down
-            [+1, +1], //
-            [-1, +1], 
+            [+1, +1], // down right
+            [-1, +1], //down left
 
-            [+1, 0],
-            [-1, 0],
-
+            [+1, 0], 
+            [-1, 0], 
             [0, -1],
             [+1, -1],
             [-1, -1]
@@ -624,7 +624,7 @@ class RootParticle extends PlantParticle {
         if (this.watered) {
             if (neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
-                // many neighbours
+                // many root neighbours
                 let count = 0;
                 for (let i = 0; i < this.neighbourList.length; i++) {
                     let dn = this.neighbourList[i];
@@ -635,46 +635,26 @@ class RootParticle extends PlantParticle {
                     }
                 }
                 
-                //if the plant particle has already grown 2 times, don't grow
+                //if the root particle has already grown 2 times, don't grow
                 if (count < 2) {
                     if (neighbour instanceof SoilParticle) {
                         neighbour.delete();
                     }
-                    // grow into it
                     if (random() > 0.5) {
-                        this.world.addParticle(new RootParticle(xn, yn, this.world));
+                        this.world.addParticle(new RootParticle(this, xn, yn, this.world));
                         this.watered = false;
                     }
-                }
-                //if you haven't grown, give your water upwards instead
-                
+                }             
             }
 
-            // else {
-            //     for (let i = 0; i < 3; i++){
-            //         //upwards pixels
-            //         let dn = this.neighbourList[5 + i];
-            //         let xnn = xn + dn[0];
-            //         let ynn = yn + dn[1];
-
-            //         let neighbour = this.world.getParticle(xnn, ynn);
-            //         if ((neighbour instanceof RootParticle) && !neighbour.watered) {
-            //             neighbour.watered = true;
-            //             this.watered = false;
-            //             print('giving to root');
-            //         }else if(neighbour instanceof PlantParticle && !neighbour.watered){
-            //             neighbour.watered = true;
-            //             this.watered = false;
-            //             print(neighbour.watered, this.watered);
-            //         }
-            //     }
-            // }
-            
-            else if (neighbour instanceof PlantParticle || neighbour instanceof RootParticle) {
-                if (!neighbour.watered) {
-                    neighbour.watered = true;
+            //if the neighbour that I want to grow into isn't soil
+            //give my water upwards
+            else{
+                if(!this.prev.watered){
+                    this.prev.watered = true;
                     this.watered = false;
                 }
+                
             }
 
         }
@@ -756,9 +736,9 @@ class WaterParticle extends FluidParticle {
         super(x, y, world);
         this.weight = 60;
         this.neighbourList = [
-            [+0, +1],
-            [-1, +1],
-            [+1, +1]
+            [+0, +1], //down
+            [-1, +1], //down left
+            [+1, +1] //down right
         ]
     }
 
@@ -770,7 +750,9 @@ class WaterParticle extends FluidParticle {
             let ynn = this.y + dn[1];
             let neighbour = this.world.getParticle(xnn, ynn);
 
-            if(neighbour instanceof SoilParticle && neighbour.getWater() < 2 && random() < 0.2){
+            //if the nearest neighbour is soil and it's saturation level is less than 2
+            //saturate it and delete this particle
+            if(neighbour instanceof SoilParticle && neighbour.getWater() < 2){
                 neighbour.setWater(1);
                 this.delete();
                 break;

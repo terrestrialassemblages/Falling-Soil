@@ -87,8 +87,9 @@ class World {
                 return;
             }
         }
-        this.particleGrid[p.x][p.y] = p;
-        this.placeableSet.add(p);
+            this.particleGrid[p.x][p.y] = p;
+            this.placeableSet.add(p);
+        
     }
 
     /**
