@@ -53,53 +53,20 @@ class Particle extends Placeable {
         return super.update();
     }
 
-    burn() {
-        this.color = this.burningFlickerColor();
-
-        let neighbourList = [
-            [0, -1],
-            [+1, 0],
-            [-1, 0],
-            [0, +1],
-        ];
-
-        for (let i = 0; i < neighbourList.length; i++) {
-            let d = neighbourList[i];
-            let xn = this.x + d[0];
-            let yn = this.y + d[1];
-            let neighbour = this.world.getParticle(xn, yn);
-            if (neighbour.flammability > 0 && !neighbour.burning) {
-                if (neighbour.flammability * (1 - 0.5 * d[1]) > random()) {
-                    neighbour.burning = true;
-                }
-            }
-            else if (!neighbour && this.fuel > 0) {
-                if (d[1] < 1
-                    && this.world.getParticle(this.x - 1, this.y).burning
-                    && this.world.getParticle(this.x + 1, this.y).burning
-                ) {
-                    this.world.addParticle(
-                        new FlameParticle(xn, yn, this.world,
-                            random([...Array(this.fuel).keys()]))
-                    );
-                }
-            }
-            else if (neighbour instanceof WaterParticle) {
-                neighbour.evaporate();
-                this.burning = false;
-                break;
-            }
-        }
-
-        this.fuel--;
-        if (this.fuel < 0) {
-            this.delete();
-        }
+    //v1 is giving its water and v2 is taking
+    water_give(v1, v2){
+        v1.setWater(-1);
+        v2.setWater(1);
     }
 
-    burningFlickerColor() {
-        return adjustHSBofString(this.constructor.BURNING_COLOR,
-            random(0.95, 1.05), random(0.95, 1.05), random(0.95, 1.05));
+    //v1 is giving it's nitrogen and v2 is taking
+    nitrogen_give(v1, v2){
+        v1.nitrogen -= 1;
+        v2.nitrogen += 1;
+    }
+
+    change_colour(){
+        
     }
 }
 
@@ -113,18 +80,6 @@ class WallParticle extends Particle {
     }
 }
 
-
-// class WoodParticle extends Particle {
-//     static BASE_COLOR = '#C17736'
-
-//     constructor(x, y, world) {
-//         super(x, y, world);
-//         this.flammability = 0.1;
-//         this.fuel = 200;
-//     }
-// }
-
-
 class IndestructibleWallParticle extends WallParticle {
 
     static BASE_COLOR = '#6C727B';
@@ -137,41 +92,6 @@ class IndestructibleWallParticle extends WallParticle {
         this.indestructible = true;
     }
 }
-
-
-// class FlameParticle extends Particle {
-//     static BASE_COLOR = '#ff7700'
-//     static BURNING_COLOR = '#ff7700'
-
-//     constructor(x, y, world, fuel = 0) {
-//         super(x, y, world);
-//         this.fuel = fuel;
-//         this.burning = true;
-//         this.fresh = true;
-//         this.color = this.constructor.BASE_COLOR;
-//     }
-
-//     update() {
-//         // this.color = adjustHSBofString(this.constructor.BASE_COLOR,
-//         //     random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
-
-//         if (!this.fresh) {
-//             super.update();
-//         }
-//         else {
-//             this.fresh = false;
-//         }
-
-//         if (!this.burning) {
-//             this.delete();
-//         }
-//     }
-
-//     burningFlickerColor() {
-//         return adjustHSBofString(this.constructor.BURNING_COLOR,
-//             random(0.9, 1.1), random(0.95, 1.05), random(0.5, 1.5));
-//     }
-// }
 
 
 class MoveableParticle extends Particle {
@@ -284,10 +204,12 @@ class MoveableParticle extends Particle {
 }
 
 class BacteriaParticle extends Particle {
+    static BASE_COLOR = '#a3423b';
+
     constructor(x, y, world){
         super(x, y, world);
         //does the bacteria have nutrients to share with the plant?
-        this.fixation = false;
+        this.nitrogen = 0;
         this.movement_count = 40;
         this.neighbourList = [
             [0, -1], //up
@@ -313,23 +235,17 @@ class BacteriaParticle extends Particle {
 
             if(neighbour instanceof SoilParticle){
                 //what is the soil like?
-                let soilState = neighbour.state;
-                let bacteriaState = this.fixation;
+                neighbour.nitrogen_give(neighbour, this);
 
-                //move the bacteria into a = new place
-                this.world.addParticle(new BacteriaParticle(xn, yn, this.world), true);
-                this.world.addParticle(new SoilParticle(this.x, this.y, this.world), true);
-                // let newParticle = this.world.getParticle(this.x, this.y);
+                //move the bacteria into a new place
+                this.delete();
+                neighbour.moveToGridPosition(this.x, this.y)
+                this.world.addParticle(new BacteriaParticle(xn, yn, world));
 
-                // newParticle.setState('poor');
-
-                // if(bacteriaState == true || soilState == 'healthy'){
-                //     this.world.getParticle(xn, yn).fixation = true;
-                // }
-
-            }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle){
-                //transfer nutrients
+            }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
+                neighbour.nitrogen_give(this, neighbour);
             }
+
             this.movement_count = 40;
         }else{
             this.movement_count -= 1;
@@ -428,7 +344,7 @@ class SoilParticle extends SandParticle {
         }else{
             this.color = adjustHSBofString(this.color, 1.1, 0.9, 1.1);
         }
-        this.watered = this.watered + nw;
+        this.watered += nw;
       
     }
 
@@ -532,16 +448,14 @@ class PlantParticle extends Particle {
         ]
     }
 
-    //v1 is giving its water and v2 is taking
-    water_give(v1, v2){
-        v1.watered -= 1;
-        v2.watered += 1;
-    }
-
-    //v1 is giving it's nitrogen and v2 is taking
-    nitrogen_give(v1, v2){
-        v1.nitrogen -= 1;
-        v2.nitrogen += 1;
+    setWater(w) {
+        this.watered += w;
+        if (this.watered > 0) {
+            this.color = this.color_watered;
+        }
+        else {
+            this.color = this.color_dry;
+        }
     }
 
     update() {
@@ -579,7 +493,7 @@ class PlantParticle extends Particle {
                 if ((random() * this.nitrogen) > 0.5) {
                     //print('plant is growing');
                     this.world.addParticle(new PlantParticle(xn, yn, world));
-                    this.watered = 0;
+                    this.setWater(-1);
                     if(this.nitrogen == 2){
                         this.nitrogen = 1;
                     }
@@ -629,9 +543,22 @@ class RootParticle extends PlantParticle {
             [-1, -1]
         ]
 
-        if(this instanceof RootParticle && random() < 0.3 && this.world.getParticle(x + 1, y + 1) instanceof SoilParticle){
-            this.world.getParticle(x + 1, y + 1).delete();
-            this.world.addParticle(new HyphaeParticle(this, x + 1, y + 1, world));
+        //decide bottom left or bottom right placement for hyphae
+        let d;
+        if (random() < 0.6) {
+            d = this.neighbourList[1];
+        } else {
+            d = this.neighbourList[2];
+        }
+
+        //get new positions and particle
+        let xn = this.x + d[0];
+        let yn = this.y + d[1];
+        let neighbour = this.world.getParticle(xn, yn);
+
+        if(!(this instanceof HyphaeParticle) && random() < 0.2 && neighbour instanceof SoilParticle){
+            neighbour.delete();
+            this.world.addParticle(new HyphaeParticle(this, xn, yn, world));
         }
     }
 
@@ -667,7 +594,7 @@ class RootParticle extends PlantParticle {
                     if ((random() * this.nitrogen) > 0.5) {
                         neighbour.delete();
                         this.world.addParticle(new RootParticle(this, xn, yn, world));
-                        this.watered = 0;
+                        this.setWater(-1);
                         if(this.nitrogen == 2){
                             this.nitrogen = 1;
                         }
@@ -716,23 +643,44 @@ class RootParticle extends PlantParticle {
 }
 
 class HyphaeParticle extends RootParticle{
-    static BASE_COLOR = '#ffffff';
+    static BASE_COLOR = '#c9c6b3';
 
     constructor(previous, x, y, world){
         super(previous, x, y, world);
     }
+
+    update(){
+        //choose a random direction
+        let d = random(this.neighbourList);
+
+        //get new positions and particle
+        let xn = this.x + d[0];
+        let yn = this.y + d[1];
+        let neighbour = this.world.getParticle(xn, yn);
+
+        if(neighbour instanceof SoilParticle){
+            //take water from soil
+            if(neighbour.watered > 0 && this.watered == 0){
+                this.water_give(neighbour, this);
+            }
+
+            //take nitrogen from soil
+            if(neighbour.nitrogen > 0 && this.nitrogen == 1){
+                this.nitrogen_give(neighbour, this);
+            }
+
+            //give one of your water to the root if it needs it
+            if(this.prev.watered == 0 && this.watered == 1){
+                this.water_give(this, this.prev);
+            }
+
+            //give one of your nitrogen to the root if it needs it
+            if(this.prev.nitrogen == 1 && this.nitrogen == 2){
+                this.nitrogen_give(this, this.prev);
+            }
+        }
+    }
 }
-
-
-// class GunpowderParticle extends SandParticle {
-//     static BASE_COLOR = '#222222'
-
-//     constructor(x, y, world) {
-//         super(x, y, world);
-//         this.flammability = 0.7;
-//         this.fuel = 25;
-//     }
-// }
 
 
 class FluidParticle extends MoveableParticle {
@@ -854,37 +802,6 @@ class SteamParticle extends FluidParticle {
         this.world.addParticle(new WaterParticle(this.x, this.y, this.world), true);
     }
 }
-
-
-// class HydrogenParticle extends FluidParticle {
-//     static BASE_COLOR = '#9379a8';
-
-//     constructor(x, y, world) {
-//         super(x, y, world);
-//         this.weight = 0.2;
-//         this.flammability = 0.95;
-//         this.fuel = 6;
-//     }
-
-//     update() {
-//         super.update(true);
-//     }
-// }
-
-// class GasolineParticle extends FluidParticle {
-//     static BASE_COLOR = '#6922A2'
-
-//     constructor(x, y, world) {
-//         super(x, y, world);
-//         this.weight = 50;
-//         this.flammability = 0.95;
-//         this.fuel = 15;
-//     }
-
-//     update() {
-//         super.update(true);
-//     }
-// }
 
 
 adjustHSBofString = function (colorString, scaleH, scaleS, scaleB) {
