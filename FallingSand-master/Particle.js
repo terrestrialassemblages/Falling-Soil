@@ -531,7 +531,7 @@ class PlantParticle extends Particle {
             [-1, 0]
         ]
     }
-    
+
     //v1 is giving its water and v2 is taking
     water_give(v1, v2){
         v1.watered -= 1;
@@ -628,6 +628,11 @@ class RootParticle extends PlantParticle {
             [+1, -1],
             [-1, -1]
         ]
+
+        if(this instanceof RootParticle && random() < 0.3 && this.world.getParticle(x + 1, y + 1) instanceof SoilParticle){
+            this.world.getParticle(x + 1, y + 1).delete();
+            this.world.addParticle(new HyphaeParticle(this, x + 1, y + 1, world));
+        }
     }
 
     update() {
@@ -708,6 +713,14 @@ class RootParticle extends PlantParticle {
 
     }
 
+}
+
+class HyphaeParticle extends RootParticle{
+    static BASE_COLOR = '#ffffff';
+
+    constructor(previous, x, y, world){
+        super(previous, x, y, world);
+    }
 }
 
 
