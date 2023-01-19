@@ -288,7 +288,7 @@ class BacteriaParticle extends Particle {
         super(x, y, world);
         //does the bacteria have nutrients to share with the plant?
         this.fixation = false;
-
+        this.movement_count = 40;
         this.neighbourList = [
             [0, -1], //up
             [-1, -1], //up left
@@ -302,32 +302,37 @@ class BacteriaParticle extends Particle {
     }
 
     update() {
-        //choose a random direction
-        let d = random(this.neighbourList);
+        if(this.movement_count == 0){
+            //choose a random direction
+            let d = random(this.neighbourList);
 
-        //get new positions and particle
-        let xn = this.x + d[0];
-        let yn = this.y + d[1];
-        let neighbour = this.world.getParticle(xn, yn);
+            //get new positions and particle
+            let xn = this.x + d[0];
+            let yn = this.y + d[1];
+            let neighbour = this.world.getParticle(xn, yn);
 
-        if(neighbour instanceof SoilParticle){
-            //what is the soil like?
-            let soilState = neighbour.state;
-            let bacteriaState = this.fixation;
+            if(neighbour instanceof SoilParticle){
+                //what is the soil like?
+                let soilState = neighbour.state;
+                let bacteriaState = this.fixation;
 
-            //move the bacteria into a = new place
-            this.world.addParticle(new BacteriaParticle(xn, yn, this.world), true);
-            this.world.addParticle(new SoilParticle(this.x, this.y, this.world), true);
-            // let newParticle = this.world.getParticle(this.x, this.y);
+                //move the bacteria into a = new place
+                this.world.addParticle(new BacteriaParticle(xn, yn, this.world), true);
+                this.world.addParticle(new SoilParticle(this.x, this.y, this.world), true);
+                // let newParticle = this.world.getParticle(this.x, this.y);
 
-            // newParticle.setState('poor');
+                // newParticle.setState('poor');
 
-            // if(bacteriaState == true || soilState == 'healthy'){
-            //     this.world.getParticle(xn, yn).fixation = true;
-            // }
+                // if(bacteriaState == true || soilState == 'healthy'){
+                //     this.world.getParticle(xn, yn).fixation = true;
+                // }
 
-        }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle){
-            //transfer nutrients
+            }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle){
+                //transfer nutrients
+            }
+            this.movement_count = 40;
+        }else{
+            this.movement_count -= 1;
         }
     }
 }
@@ -384,8 +389,11 @@ class SoilParticle extends SandParticle {
 
         if(random() > 0.5){
             state = 'healthy';
+            this.nitrogen = 2;
+
         }else{
             state = 'poor';
+            this.nitrogen = 1;
         }
 
         this.setState(state);
@@ -505,8 +513,9 @@ class PlantParticle extends Particle {
     constructor(x, y, world) {
         super(x, y, world);
         this.color_watered = this.color;
-        this.color_dry = adjustHSBofString(this.color, 0.8, 1, 1);
-        this.watered = false;
+        this.color_dry = adjustHSBofString(this.color, 0.7, 1, 1);
+        this.watered = 0;
+        this.nitrogen = 1;
         this.fuel = 35;
 
         this.neighbourList = [
@@ -522,21 +531,17 @@ class PlantParticle extends Particle {
             [-1, 0]
         ]
     }
-
-    set watered(w) {
-        this._watered = w;
-        if (w) {
-            this.color = this.color_watered;
-            this.flammability = 0.025;
-        }
-        else {
-            this.color = this.color_dry;
-            this.flammability = 0.10;
-        }
+    
+    //v1 is giving its water and v2 is taking
+    water_give(v1, v2){
+        v1.watered -= 1;
+        v2.watered += 1;
     }
 
-    get watered() {
-        return this._watered;
+    //v1 is giving it's nitrogen and v2 is taking
+    nitrogen_give(v1, v2){
+        v1.nitrogen -= 1;
+        v2.nitrogen += 1;
     }
 
     update() {
@@ -553,8 +558,9 @@ class PlantParticle extends Particle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if (this.watered) {
-            if (!neighbour || neighbour instanceof SoilParticle) {
+        if (this.watered == 1) {
+            //print('plant is watered');
+            if (!neighbour) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many plant neighbours
                 let count = 0;
@@ -566,20 +572,32 @@ class PlantParticle extends Particle {
                         count++;
                     }
                 }
-                //if the plant particle has already grown 2 times, don't grow
-                if (count < 2) {
-                    if (random() > 0.5) {
-                        this.world.addParticle(new PlantParticle(xn, yn, this.world));
-                        this.watered = false;
+
+            //if the plant particle has already grown 2 times, don't grow
+            //print(count);
+            if(count < 2){
+                if ((random() * this.nitrogen) > 0.5) {
+                    //print('plant is growing');
+                    this.world.addParticle(new PlantParticle(xn, yn, world));
+                    this.watered = 0;
+                    if(this.nitrogen == 2){
+                        this.nitrogen = 1;
                     }
                 }
             }
+                
+            }
             //if the place you want to grow has a plant particle there
-            //give it your watered state
+            //give it your watered or nitrogen state
             else if (neighbour instanceof PlantParticle) {
-                if (!neighbour.watered) {
-                    neighbour.watered = true;
-                    this.watered = false;
+                if(neighbour.watered == 0){
+                    //print('plant is giving its water');
+                    this.water_give(this, neighbour);
+                }
+
+                if(neighbour.nitrogen == 1 && this.nitrogen == 2){
+                    //print('plant is giving its nitrogen');
+                    this.nitrogen_give(this, neighbour);
                 }
             }
 
@@ -626,7 +644,7 @@ class RootParticle extends PlantParticle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if (this.watered) {
+        if (this.watered == 1) {
             if (neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many root neighbours
@@ -640,36 +658,52 @@ class RootParticle extends PlantParticle {
                     }
                 }
                 
-                //if the root particle has already grown 2 times, don't grow
-                if (count < 2) {
-                    if (neighbour instanceof SoilParticle) {
+                if(count < 2){
+                    if ((random() * this.nitrogen) > 0.5) {
                         neighbour.delete();
+                        this.world.addParticle(new RootParticle(this, xn, yn, world));
+                        this.watered = 0;
+                        if(this.nitrogen == 2){
+                            this.nitrogen = 1;
+                        }
                     }
-                    if (random() > 0.5) {
-                        this.world.addParticle(new RootParticle(this, xn, yn, this.world));
-                        this.watered = false;
-                    }
-                }             
+                }        
             }
 
             //if the neighbour that I want to grow into isn't soil
-            //give my water upwards
+            //give my water and nitrogen upwards
             else{
-                if(!this.prev.watered){
-                    this.prev.watered = true;
-                    this.watered = false;
+                if(this.prev.watered == 0){
+                    // if(neighbour instanceof PlantParticle){
+                    //     print('water is being given to plant');
+                    // }
+                    
+                    this.water_give(this, this.prev);
                 }
-                
+                if(this.prev.nitrogen == 1 && this.nitrogen == 2){
+                    // if(neighbour instanceof PlantParticle){
+                    //     print('nitrogen is being given to plant');
+                    // }
+                    this.nitrogen_give(this, this.prev);
+                }
             }
 
         }
         else {
-            // If we're not watered look for water
-            if (neighbour instanceof SoilParticle && neighbour.getWater() > 0) {
-                // if the random neighbour is water, delete it and we are now watered
-                neighbour.setWater(-1);
-                this.watered = true;
+            if (neighbour instanceof SoilParticle) {
+                //If we don't have nutrients, look for them
+                if(neighbour.nitrogen > 0 && this.nitrogen == 1){
+                    //print('nitrogen is being taken from the ground');
+                    this.nitrogen_give(neighbour, this);
+                }
+                
+                // If we're not watered look for water
+                if(neighbour.watered > 0 && this.watered == 0){
+                    //print('roots are being watered');
+                    this.water_give(neighbour, this);
+                }
             }
+
         }
 
     }
