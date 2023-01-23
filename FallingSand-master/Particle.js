@@ -61,12 +61,50 @@ class Particle extends Placeable {
 
     //v1 is giving it's nitrogen and v2 is taking
     nitrogen_give(v1, v2){
-        v1.nitrogen -= 1;
-        v2.nitrogen += 1;
+        v1.setNitrogen(-1);
+        v2.setNitrogen(1);
     }
 
-    change_colour(){
+    setWater(nw){
+        //everytime water gets more saturated, the colour changes a little
+        this.color = this.change_colour(this.color, this.watered);
+        this.watered += nw;
+      
+    }
+
+    setNitrogen(nn){
+        //everytime there is more nitrogen, the colour changes a little
+        this.color = this.change_colour(this.color, 0, this.nitrogen);
+        this.nitrogen += nn;
+      
+    }
+
+    //colour change code to apply for water, nitrogen, etc.
+    //new_p signifies a new particle, which multiplies the colour change
+    change_colour(colour, water_change = 0, nitro_change = 0, new_p = false){
+        let n_col = colour;
+        if(water_change > 0){
+            if(new_p){
+                n_col = adjustHSBofString(n_col, pow(0.9, water_change), pow(1.1, water_change), pow(0.9, water_change))
+            }else{
+                n_col = adjustHSBofString(n_col, 0.9, 1.1, 0.9);
+            }
+        }else if(water_change  == -1){
+            n_col = adjustHSBofString(n_col, 1.1, 0.9, 1.1);
+        }
+        if(nitro_change > 1){
+            if(new_p){
+                n_col = adjustHSBofString(n_col, pow(0.9, nitro_change-1), pow(0.9, nitro_change-1), pow(1.1, nitro_change-1))
+            }
+            else{
+                n_col = adjustHSBofString(n_col, 0.9, 0.9, 1.1);
+            }
+        }else if(nitro_change == -1){
+            n_col = adjustHSBofString(n_col, 1.1, 1.1, 0.9);
+        }
         
+        return n_col;
+
     }
 }
 
@@ -204,12 +242,13 @@ class MoveableParticle extends Particle {
 }
 
 class BacteriaParticle extends Particle {
-    static BASE_COLOR = '#a3423b';
+    static BASE_COLOR = '#a11ee3';
 
+    //removed nn
     constructor(x, y, world){
         super(x, y, world);
         //does the bacteria have nutrients to share with the plant?
-        this.nitrogen = 0;
+        //this.nitrogen = nn;
         this.movement_count = 40;
         this.neighbourList = [
             [0, -1], //up
@@ -235,15 +274,21 @@ class BacteriaParticle extends Particle {
 
             if(neighbour instanceof SoilParticle){
                 //what is the soil like?
-                neighbour.nitrogen_give(neighbour, this);
-
+                if(this.nitrogen < 2){
+                    neighbour.nitrogen_give(neighbour, this);
+                }
+                
                 //move the bacteria into a new place
                 this.delete();
                 neighbour.moveToGridPosition(this.x, this.y)
+                neighbour.setState('healthy');
+                //removed this.nitrogen
                 this.world.addParticle(new BacteriaParticle(xn, yn, world));
 
             }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
                 neighbour.nitrogen_give(this, neighbour);
+            }else if(!neighbour){
+                this.delete();
             }
 
             this.movement_count = 40;
@@ -315,37 +360,19 @@ class SoilParticle extends SandParticle {
         this.setState(state);
     }
 
+    //sets the soil state and alters the colours based on nitrogen and water content
     setState(ns){
-        this.state = ns;
-        if(ns == 'healthy'){
+        if(ns == 'healthy' && this.state != 'healthy'){
             //healthy and compacted dirt have saturation colourings relative to their states
-            if(this.watered > 0){
-                this.color = adjustHSBofString(this.color_healthy, pow(0.9, this.watered), pow(1.1, this.watered), pow(0.9, this.watered))
-            }else{
-                this.color = this.color_healthy;
-            }
-        }else if (random() < 0.5){
-            if(this.watered > 0){
-                this.color = adjustHSBofString(this.color_poor, pow(0.9, this.watered), pow(1.1, this.watered), pow(0.9, this.watered));
-            }else{
-                this.color = this.color_poor;
-            }
+            this.color = this.change_colour(this.color_healthy, this.watered, this.nitrogen, true);
+        }else if(ns == 'poor' && this.state != 'poor'){
+            this.color = this.change_colour(this.color_poor, this.watered, this.nitrogen, true);
         }
+        this.state = ns;
     }
 
     getWater(){
         return this.watered;
-    }
-
-    setWater(nw){
-        //everytime water gets more saturated, the colour changes a little
-        if(nw == 1){
-            this.color = adjustHSBofString(this.color, 0.9, 1.1, 0.9);
-        }else{
-            this.color = adjustHSBofString(this.color, 1.1, 0.9, 1.1);
-        }
-        this.watered += nw;
-      
     }
 
     update(){
@@ -359,6 +386,7 @@ class Syn_FertParticle extends SandParticle {
         super(x, y, world);
         //lighter than soil so it sits on top
         this.weight = 45;
+        this.nitrogen = 1;
 
         //downwards positions to tell if there is soil to change
         this.neighbourList = [
@@ -380,6 +408,7 @@ class Syn_FertParticle extends SandParticle {
                 //if the nearest soil is healthy, turn it poor
                 if(neighbour.state == 'healthy'){
                     neighbour.setState('poor');
+                    neighbour.nitrogen_give(this, neighbour);
                     this.delete();
                     break;
                 }
@@ -394,6 +423,7 @@ class Org_FertParticle extends SandParticle {
         super(x, y, world);
         //lighter than soil so it sits on top
         this.weight = 45;
+        this.nitrogen = 1;
 
         this.neighbourList = [
             [+0, +1], //down
@@ -414,10 +444,63 @@ class Org_FertParticle extends SandParticle {
                 //if the soil is poor, turn it healthy
                 if(neighbour.state == 'poor'){
                     neighbour.setState('healthy');
+                    neighbour.nitrogen_give(this, neighbour);
                     this.delete();
                     break;
                 }
             }
+        }
+    }
+}
+
+class SeedParticle extends SandParticle{
+    static BASE_COLOR = '#fcba03';
+    constructor(x, y, world){
+        super(x, y, world);
+        this.weight = 45;
+
+        this.neighbourList = [
+            //growth directions
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, +1], //down right
+            [-1, +1], //down left
+            [+1, 0], //right
+            [-1, 0] //left
+        ]
+    }
+
+    update(){
+        //upper particle
+        let xu = this.x;
+        let yu = this.y - 1;
+        let neighbour_upper = this.world.getParticle(xu, yu);
+
+        //lower particle
+        let xl = this.x;
+        let yl = this.y + 1;
+        let neighbour_lower = this.world.getParticle(xl, yl);
+
+        if(!neighbour_upper && neighbour_lower instanceof SoilParticle){
+            let count = 0;
+            for (let i = 0; i < this.neighbourList.length; i++) {
+                let dn = this.neighbourList[i];
+                let xnn = this.x + dn[0];
+                let ynn = this.y + dn[1];
+                if (this.world.getParticle(xnn, ynn) instanceof PlantParticle || this.world.getParticle(xnn, ynn) instanceof RootParticle) {
+                    count++;
+                }
+            }
+
+            if(count < 2){
+                this.delete();
+                neighbour_lower.delete();
+                let plant_p = new PlantParticle(this.x, this.y, world)
+                this.world.addParticle(plant_p);
+                this.world.addParticle(new RootParticle(plant_p, xl, yl, world));
+            }
+        }else{
+            super.update();
         }
     }
 }
@@ -577,7 +660,7 @@ class RootParticle extends PlantParticle {
         let neighbour = this.world.getParticle(xn, yn);
 
         if (this.watered == 1) {
-            if (neighbour instanceof SoilParticle) {
+            if (neighbour instanceof SoilParticle || neighbour instanceof HyphaeParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many root neighbours
                 let count = 0;
@@ -591,7 +674,9 @@ class RootParticle extends PlantParticle {
                 }
                 
                 if(count < 2){
+                    //print(this.nitrogen);
                     if ((random() * this.nitrogen) > 0.5) {
+                        //print('root growing');
                         neighbour.delete();
                         this.world.addParticle(new RootParticle(this, xn, yn, world));
                         this.setWater(-1);
@@ -676,6 +761,7 @@ class HyphaeParticle extends RootParticle{
 
             //give one of your nitrogen to the root if it needs it
             if(this.prev.nitrogen == 1 && this.nitrogen == 2){
+                //print('hyphae is giving nitrogen');
                 this.nitrogen_give(this, this.prev);
             }
         }
@@ -766,12 +852,12 @@ class WaterParticle extends FluidParticle {
     }
 
     evaporate() {
-        this.world.addParticle(new SteamParticle(this.x, this.y, this.world), true);
+        this.world.addParticle(new CloudParticle(this.x, this.y, this.world), true);
     }
 }
 
 
-class SteamParticle extends FluidParticle {
+class CloudParticle extends FluidParticle {
     static BASE_COLOR = '#c0d2f2'
     static BASE_CONDENSATION_COUNTDOWN = 100;
 

@@ -35,7 +35,8 @@ const PLACEABLE_TYPES = {
 	// 'Sand': SandParticle,
 	'Soil' : SoilParticle,
 	'Water': WaterParticle,
-	'Steam': SteamParticle,
+	'Cloud': CloudParticle,
+	'Seed' : SeedParticle,
 	'Plant': PlantParticle,
 	'Bacteria' : BacteriaParticle,
 	'Synthetic Fertiliser' : Syn_FertParticle,
@@ -46,7 +47,7 @@ const PLACEABLE_TYPES = {
 	// 'Gunpowder': GunpowderParticle,
 	// 'Sand Source': function (x, y) { return new ParticleSource(x, y, world, SandParticle) },
 	'Water Source': function (x, y) { return new ParticleSource(x, y, world, WaterParticle) },
-	'Steam Source': function (x, y) { return new ParticleSource(x, y, world, SteamParticle) },
+	'Cloud Source': function (x, y) { return new ParticleSource(x, y, world, CloudParticle) },
 	// 'Flame Source': function (x, y) { return new ParticleSource(x, y, world, FlameParticle) },
 	// 'Gasoline Source': function (x, y) { return new ParticleSource(x, y, world, GasolineParticle) },
 	// 'Hydrogen Source': function (x, y) { return new ParticleSource(x, y, world, HydrogenParticle) },
@@ -279,7 +280,7 @@ handleMouseClick = function () {
 					let iy = y + j;
 					if (ix <= world.gridWidth - 2 && ix >= 1 && iy <= world.gridHeight - 2 && iy >= 1) {
 						let action = radio.value();
-						if (action === 'Delete') {
+						if (action === 'on') {
 							let p = world.getPlaceable(ix, iy);
 							if (p) {
 								world.deletePlaceable(p);
@@ -296,6 +297,7 @@ handleMouseClick = function () {
 									new RootParticle(plant, ix, iy + 1, world),
 									brushReplaceCheckbox.checked());
 							}else{
+								//print(action);
 								world.addPlaceable(
 									new PLACEABLE_TYPES[action](ix, iy, world),
 									brushReplaceCheckbox.checked());
