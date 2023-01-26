@@ -37,7 +37,7 @@ const PLACEABLE_TYPES = {
 	'Water': WaterParticle,
 	'Cloud': CloudParticle,
 	'Seed' : SeedParticle,
-	'Plant': PlantParticle,
+	//'Plant': PlantParticle,
 	'Bacteria' : BacteriaParticle,
 	'Synthetic Fertiliser' : Syn_FertParticle,
 	'Organic Fertiliser' : Org_FertParticle,
@@ -58,7 +58,7 @@ const PLACEABLE_TYPES = {
 
 function setup() {
 
-	world = new World(100, 100);
+	world = new World(150, 150);
 
 	// ******************** SETUP UI ********************
 
@@ -92,7 +92,6 @@ function setup() {
 
 		radio.option(p);
 	}
-	radio.option('Delete');
 	radio.selected('Sand');
 
 	// Other Various UI elements:
@@ -219,7 +218,7 @@ function draw() {
 	}
 
 	canvasContext.save()
-	// background('#333333');
+	//background('#131622');
 	// Separate loop for showing because sometimes particles will be moved by others after they update
 	world.showAll(canvasContext, pixelsPerParticle);
 	canvasContext.restore();
