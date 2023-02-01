@@ -241,13 +241,13 @@ class MoveableParticle extends Particle {
     }
 }
 
-class BacteriaParticle extends Particle {
+class OrganismParticle extends Particle {
     static BASE_COLOR = '#a11ee3';
 
     //removed nn
     constructor(x, y, world){
         super(x, y, world);
-        //does the bacteria have nutrients to share with the plant?
+        //does the organism have nutrients to share with the plant?
         //this.nitrogen = nn;
         this.movement_count = 40;
         this.neighbourList = [
@@ -278,12 +278,12 @@ class BacteriaParticle extends Particle {
                     neighbour.nitrogen_give(neighbour, this);
                 }
                 
-                //move the bacteria into a new place
+                //move the organism into a new place
                 this.delete();
                 neighbour.moveToGridPosition(this.x, this.y)
                 neighbour.setState('healthy');
                 //removed this.nitrogen
-                this.world.addParticle(new BacteriaParticle(xn, yn, world));
+                this.world.addParticle(new OrganismParticle(xn, yn, world));
 
             }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
                 neighbour.nitrogen_give(this, neighbour);
@@ -384,8 +384,7 @@ class Syn_FertParticle extends SandParticle {
     static BASE_COLOR = '#4f7052';
     constructor(x, y, world) {
         super(x, y, world);
-        //lighter than soil so it sits on top
-        this.weight = 45;
+        this.weight = 50;
         this.nitrogen = 1;
 
         //downwards positions to tell if there is soil to change
@@ -421,8 +420,7 @@ class Org_FertParticle extends SandParticle {
     static BASE_COLOR = '#705d4f';
     constructor(x, y, world) {
         super(x, y, world);
-        //lighter than soil so it sits on top
-        this.weight = 45;
+        this.weight = 50;
         this.nitrogen = 1;
 
         this.neighbourList = [
@@ -457,7 +455,9 @@ class SeedParticle extends SandParticle{
     static BASE_COLOR = '#fcba03';
     constructor(x, y, world){
         super(x, y, world);
-        this.weight = 45;
+        this.weight = 50;
+        this.remove_count = 0;
+        this.remove_threshhold = random(200, 1000);
 
         this.neighbourList = [
             //growth directions
@@ -498,9 +498,23 @@ class SeedParticle extends SandParticle{
                 let plant_p = new PlantParticle(this.x, this.y, world)
                 this.world.addParticle(plant_p);
                 this.world.addParticle(new RootParticle(plant_p, xl, yl, world));
+            }else{
+                //if this didnt grow, it degrades
+                this.degrade();
             }
         }else{
             super.update();
+            this.degrade();
+        }
+    }
+
+    //degrading turns the seed into organic fertiliser
+    degrade(){
+        this.remove_count += 1;
+        if(this.remove_count > this.remove_threshhold){
+            this.delete();
+            this.world.addParticle(new Org_FertParticle(this.x, this.y, world));
+            //print('done');
         }
     }
 }
@@ -602,6 +616,7 @@ class PlantParticle extends Particle {
 
         super.update();
     }
+
 }
 
 class RootParticle extends PlantParticle {
@@ -822,14 +837,14 @@ class WaterParticle extends FluidParticle {
         super(x, y, world);
         this.weight = 60;
         this.neighbourList = [
-            [0, -1], //up
             [-1, -1], //up left
             [+1, -1], //up right
+            [+1, 0], //right
+            [-1, 0], //left
             [+1, +1], //down right
             [0, +1], //down
             [-1, +1], //down left
-            [+1, 0], //right
-            [-1, 0] //left
+            [0, -1] //up
         ]
     }
 

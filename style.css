@@ -1,3 +1,5 @@
+@font-face { font-family: VCR-OSD-MONO; src: url('VCR_OSD_MONO_1.001.ttf'); } 
+
 html, body {
   /* height: 100%; */
   /* margin: 10;
@@ -5,7 +7,7 @@ html, body {
   background-color: #131622;
   color: beige;
   font-size:14px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: VCR-OSD-MONO;
 
 }
 
@@ -35,7 +37,7 @@ canvas {
   justify-content: center;
 
   align-items: center;
-  max-width: 600px;
+  /* max-width: 600px; */
 }
 
 .button-row {
@@ -64,6 +66,7 @@ canvas {
   margin: auto;
 }
 
+/* global css variables */
 :root {
   --button-bg-color: #202020;
   --button-checked-color: #383838;
@@ -76,25 +79,61 @@ input[type=radio] {
   display: none;
 }
 
+/* label design */
 label {
   display: inline-flex;
   cursor: pointer;
-  padding: 14px;
+  padding: 9px;
 }
 
 input[type=radio]:checked + label{
   background: var(--button-checked-color)
 }
 
-input[type=radio] + label {
+/* border around labels */
+/* input[type=radio] + label {
   border-left: solid var(--button-border-width) var(--button-checked-color);
   border-bottom: solid var(--button-border-width) var(--button-checked-color);
   border-top: solid var(--button-border-width) var(--button-checked-color);
+  border-right: solid var(--button-border-width) var(--button-checked-color);
+} */
+
+input#Water + label {
+  background: #2b63c3;
 }
-.radio-group {
-  border: solid var(--button-border-width) var(--button-checked-color);
-  display: inline-block;
-  margin: 5px;
-  overflow: hidden;
-  /* border-radius: 25px; */
+
+input#Soil + label {
+  background: #755127;
+}
+
+input#Vapour + label {
+  background: #c0d2f2;
+  color: black;
+}
+
+input#Seed + label {
+  background: #fcba03;
+  color: black;
+}
+
+input#Bug + label {
+  background: #a11ee3;
+}
+
+input#Nitrogen + label {
+  background: #4f7052;
+  color: black;
+}
+
+input#Biomass + label {
+  background: #705d4f;
+  color: black;
+}
+
+input[type=radio]:checked + label {
+  border-left: solid var(--button-border-width) #ffffff;
+  border-bottom: solid var(--button-border-width) #ffffff;
+  border-top: solid var(--button-border-width) #ffffff;
+  border-right: solid var(--button-border-width) #ffffff;
+  padding: 7px;
 }

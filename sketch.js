@@ -30,35 +30,19 @@ let brushReplaceCheckbox;
 const AIR_WEIGHT = 1;
 
 const PLACEABLE_TYPES = {
-	// 'Stone Wall': WallParticle,
-	// 'Wood Wall': WoodParticle,
-	// 'Sand': SandParticle,
 	'Soil' : SoilParticle,
 	'Water': WaterParticle,
-	'Cloud': CloudParticle,
+	'Vapour': CloudParticle,
 	'Seed' : SeedParticle,
-	//'Plant': PlantParticle,
-	'Bacteria' : BacteriaParticle,
-	'Synthetic Fertiliser' : Syn_FertParticle,
-	'Organic Fertiliser' : Org_FertParticle,
-	// 'Flame': FlameParticle,
-	// 'Gasoline': GasolineParticle,
-	// 'Hydrogen': HydrogenParticle,
-	// 'Gunpowder': GunpowderParticle,
-	// 'Sand Source': function (x, y) { return new ParticleSource(x, y, world, SandParticle) },
-	'Water Source': function (x, y) { return new ParticleSource(x, y, world, WaterParticle) },
-	'Cloud Source': function (x, y) { return new ParticleSource(x, y, world, CloudParticle) },
-	// 'Flame Source': function (x, y) { return new ParticleSource(x, y, world, FlameParticle) },
-	// 'Gasoline Source': function (x, y) { return new ParticleSource(x, y, world, GasolineParticle) },
-	// 'Hydrogen Source': function (x, y) { return new ParticleSource(x, y, world, HydrogenParticle) },
-	// 'Gunpowder Source': function (x, y) { return new ParticleSource(x, y, world, GunpowderParticle) },
-	// 'Particle Sink': ParticleSink,
+	'Bug' : OrganismParticle,
+	'Nitrogen' : Syn_FertParticle,
+	'Biomass' : Org_FertParticle,
 }
 
 
 function setup() {
 
-	world = new World(150, 150);
+	world = new World(200, 150);
 
 	// ******************** SETUP UI ********************
 
@@ -79,20 +63,19 @@ function setup() {
 	radio = createRadio(document.getElementById('particle-selector'));
 	radio.parent('gui-div');
 
-	for (let p in PLACEABLE_TYPES) {
-		let option = document.createElement('input');
-		option.type = 'radio';
-		option.id = p;
-		option.value = p;
-		radio.child(option);
+	// for (let p in PLACEABLE_TYPES) {
+	// 	let option = document.createElement('input');
+	// 	option.type = 'radio';
+	// 	option.id = p;
+	// 	option.value = p;
+	// 	radio.child(option);
 
-		let optionLabel = document.createElement('label');
-		optionLabel.htmlFor = p;
-		radio.child(optionLabel);
+	// 	let optionLabel = document.createElement('label');
+	// 	optionLabel.htmlFor = p;
+	// 	radio.child(optionLabel);
 
-		radio.option(p);
-	}
-	radio.selected('Sand');
+	// 	radio.option(p);
+	// }
 
 	// Other Various UI elements:
 	let brushDiv = createDiv();
@@ -110,30 +93,6 @@ function setup() {
 	let randomDiv = createDiv();
 	randomDiv.parent('gui-div');
 	randomDiv.class('button-row');
-
-	randomButton = createButton('Random fill<br>with selected');
-	randomButton.mousePressed(randomFill);
-	randomButton.parent(randomDiv);
-
-	let randomSliderDiv = createDiv();
-	randomSliderDiv.class('button-column');
-	randomSliderDiv.parent(randomDiv);
-
-	let randomScaleSliderLabel = createP('Random Detail: ')
-	randomScaleSliderLabel.class('button-row')
-	randomScaleSliderLabel.parent(randomSliderDiv);
-
-	randomScaleSlider = createSlider(1, 10, 4, 0.1);
-	randomScaleSlider.size(70, AUTO)
-	randomScaleSlider.parent(randomScaleSliderLabel);
-
-	let randomThresholdSliderLabel = createP('Random Threshold: ')
-	randomThresholdSliderLabel.class('button-row')
-	randomThresholdSliderLabel.parent(randomSliderDiv);
-
-	randomThresholdSlider = createSlider(-0.5, 0.5, 0, 0.05);
-	randomThresholdSlider.size(70, AUTO)
-	randomThresholdSlider.parent(randomThresholdSliderLabel);
 
 	let simDiv = createDiv();
 	simDiv.parent('gui-div');
@@ -158,42 +117,42 @@ function setup() {
 	scaleDiv.parent('gui-div');
 	scaleDiv.class('button-row');
 
-	resizeButton = createButton('Reset & Resize World<br>(may affect performance)')
-	resizeButton.parent(scaleDiv);
+	// resizeButton = createButton('Reset & Resize World<br>(may affect performance)')
+	// resizeButton.parent(scaleDiv);
 
-	let resizeInputDiv = createDiv();
-	resizeInputDiv.class('buttom-column');
-	resizeInputDiv.parent(scaleDiv);
+	// let resizeInputDiv = createDiv();
+	// resizeInputDiv.class('buttom-column');
+	// resizeInputDiv.parent(scaleDiv);
 
-	sizeInputXlabel = createDiv('x: ');
-	sizeInputXlabel.parent(resizeInputDiv);
+	// sizeInputXlabel = createDiv('x: ');
+	// sizeInputXlabel.parent(resizeInputDiv);
 
-	sizeInputX = createInput(world.gridWidth, 'number');
-	sizeInputX.parent(sizeInputXlabel);
-	sizeInputX.size(40, AUTO);
+	// sizeInputX = createInput(world.gridWidth, 'number');
+	// sizeInputX.parent(sizeInputXlabel);
+	// sizeInputX.size(40, AUTO);
 
-	sizeInputYlabel = createDiv('y: ')
-	sizeInputYlabel.parent(resizeInputDiv);
+	// sizeInputYlabel = createDiv('y: ')
+	// sizeInputYlabel.parent(resizeInputDiv);
 
-	sizeInputY = createInput(world.gridWidth, 'number');
-	sizeInputY.parent(sizeInputYlabel);
-	sizeInputY.size(40, AUTO);
+	// sizeInputY = createInput(world.gridWidth, 'number');
+	// sizeInputY.parent(sizeInputYlabel);
+	// sizeInputY.size(40, AUTO);
 
-	resizeButton.mousePressed(function () {
-		world.reset(parseInt(sizeInputX.value()), parseInt(sizeInputY.value()));
-		updateCanvasSize();
-	})
+	// resizeButton.mousePressed(function () {
+	// 	world.reset(parseInt(sizeInputX.value()), parseInt(sizeInputY.value()));
+	// 	updateCanvasSize();
+	// })
 
-	scaleLabel = createP('Scale: ');
-	scaleLabel.parent(scaleDiv);
+	// scaleLabel = createP('Scale: ');
+	// scaleLabel.parent(scaleDiv);
 
-	scaleSlider = createSlider(1, 16, pixelsPerParticle, 1);
-	scaleSlider.parent(scaleDiv);
-	scaleSlider.size(70, AUTO);
-	scaleSlider.changed(function () {
-		pixelsPerParticle = scaleSlider.value();
-		updateCanvasSize();
-	})
+	// scaleSlider = createSlider(1, 16, pixelsPerParticle, 1);
+	// scaleSlider.parent(scaleDiv);
+	// scaleSlider.size(70, AUTO);
+	// scaleSlider.changed(function () {
+	// 	pixelsPerParticle = scaleSlider.value();
+	// 	updateCanvasSize();
+	// })
 
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
@@ -279,7 +238,7 @@ handleMouseClick = function () {
 					let iy = y + j;
 					if (ix <= world.gridWidth - 2 && ix >= 1 && iy <= world.gridHeight - 2 && iy >= 1) {
 						let action = radio.value();
-						if (action === 'on') {
+						if (action === 'Delete') {
 							let p = world.getPlaceable(ix, iy);
 							if (p) {
 								world.deletePlaceable(p);
