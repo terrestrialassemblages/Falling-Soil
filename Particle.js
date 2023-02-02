@@ -654,7 +654,7 @@ class RootParticle extends PlantParticle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if(!(this instanceof HyphaeParticle) && random() < 0.2 && neighbour instanceof SoilParticle){
+        if(!(this instanceof HyphaeParticle) && random() < 0.1 && neighbour instanceof SoilParticle){
             neighbour.delete();
             this.world.addParticle(new HyphaeParticle(this, xn, yn, world));
         }
@@ -675,7 +675,7 @@ class RootParticle extends PlantParticle {
         let neighbour = this.world.getParticle(xn, yn);
 
         if (this.watered == 1) {
-            if (neighbour instanceof SoilParticle || neighbour instanceof HyphaeParticle) {
+            if (neighbour instanceof SoilParticle) {
                 // Check if the empty space I want to grow into doesn't have too
                 // many root neighbours
                 let count = 0;
@@ -747,18 +747,73 @@ class HyphaeParticle extends RootParticle{
 
     constructor(previous, x, y, world){
         super(previous, x, y, world);
+
+        this.cornerNeighbourList = [
+            //4 corner positions
+            [-1, -1], //top left
+            [+1, -1], //top right
+            [-1, +1], //bottom left
+            [+1, +1] //bottom right
+        ]
+
+        this.extendedNeighbourList = [
+            //growth positions but one pixel out
+            [-1, +2], //down two, left
+            [0, +2], //down two
+            [+1, +2], //down two, right
+            [+2, +2], //down two, right two
+            [+2, +1], //right two, down
+            [+2, 0], //right two
+            [+2, -1], //right two, up
+            [+2, -2], //right two, up two
+            [1, -2], //up two, right
+            [0, -2], //up two
+            [-1, -2], //up two, left
+            [-2, -2], //up two, left two
+            [-2, -1], //left two, up
+            [-2, 0], //left two
+            [-2, 1], //left two, down
+            [-2, +2] //left tow, down two
+        ]
     }
 
     update(){
         //choose a random direction
         let d = random(this.neighbourList);
 
+        //choose a random extended direction
+        let ed = random(this.extendedNeighbourList);
+
         //get new positions and particle
         let xn = this.x + d[0];
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if(neighbour instanceof SoilParticle){
+        //get new extended positions and particle
+        let exn = this.x + ed[0];
+        let eyn = this.y + ed[1];
+        let eneighbour = this.world.getParticle(exn, eyn);
+
+        if(eneighbour instanceof SoilParticle && eneighbour.watered > 0){
+            
+            let count = 0;
+            for (let i = 0; i < this.neighbourList.length; i++) {
+                let dn = this.neighbourList[i];
+                let xnn = exn + dn[0];
+                let ynn = eyn + dn[1];
+                let newParticle = this.world.getParticle(xnn, ynn);
+
+                if (newParticle instanceof PlantParticle || newParticle instanceof RootParticle || newParticle instanceof HyphaeParticle) {
+                    count++;
+                }
+            }
+            if(count < 2){
+                eneighbour.delete();
+                this.world.addParticle(new HyphaeParticle(this, exn, eyn, world));
+            }
+            
+
+        }else if(neighbour instanceof SoilParticle){
             //take water from soil
             if(neighbour.watered > 0 && this.watered == 0){
                 this.water_give(neighbour, this);

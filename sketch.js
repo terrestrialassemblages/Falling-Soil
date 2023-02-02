@@ -63,20 +63,6 @@ function setup() {
 	radio = createRadio(document.getElementById('particle-selector'));
 	radio.parent('gui-div');
 
-	// for (let p in PLACEABLE_TYPES) {
-	// 	let option = document.createElement('input');
-	// 	option.type = 'radio';
-	// 	option.id = p;
-	// 	option.value = p;
-	// 	radio.child(option);
-
-	// 	let optionLabel = document.createElement('label');
-	// 	optionLabel.htmlFor = p;
-	// 	radio.child(optionLabel);
-
-	// 	radio.option(p);
-	// }
-
 	// Other Various UI elements:
 	let brushDiv = createDiv();
 	brushDiv.parent('gui-div');
@@ -98,11 +84,11 @@ function setup() {
 	simDiv.parent('gui-div');
 	simDiv.class('button-row');
 
-	pauseButton = createButton('Pause');
+	pauseButton = createImg('pause-icon.png');
 	pauseButton.parent(simDiv);
 	pauseButton.mouseClicked(pauseSim);
 
-	resetButton = createButton('Reset');
+	resetButton = createImg('refresh-icon.png');
 	resetButton.parent(simDiv);
 	resetButton.mouseClicked(resetWorld);
 
