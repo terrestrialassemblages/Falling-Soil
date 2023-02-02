@@ -25,6 +25,10 @@ body {
   align-items: center;
 }
 
+#textDisplay{
+  font: 16px;
+}
+
 canvas {
   display: block;
 }

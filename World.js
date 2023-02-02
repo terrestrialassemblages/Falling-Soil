@@ -18,7 +18,7 @@ class World {
             this.particleGrid[x] = [];
             this.redrawGrid[x] = [];
             this.zoneGrid[x] = [];
-            for (let y = 0; y < this.gridHeight; y++) {
+            for (let y = 0; y < round(this.gridHeight); y++) {
 
                 // Initialize most grid positions to false
                 this.particleGrid[x][y] = false;
@@ -28,8 +28,8 @@ class World {
                 // Initialize boundaries to indestructible walls so I don't ever
                 // have to check if we're looking outside the array bounds
                 if (
-                    y === 0 || y === this.gridHeight - 1
-                    || x === 0 || x === this.gridWidth - 1
+                    y === 0 || y === round(this.gridHeight) - 1
+                    || x === 0 || x === round(this.gridWidth) - 1
                 ) {
                     this.addParticle(new IndestructibleWallParticle(x, y, this));
                 }

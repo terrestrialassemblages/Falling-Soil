@@ -42,7 +42,7 @@ const PLACEABLE_TYPES = {
 
 function setup() {
 
-	world = new World(200, 150);
+	world = new World(windowWidth / 5, windowHeight / 5);
 
 	// ******************** SETUP UI ********************
 
@@ -64,6 +64,7 @@ function setup() {
 	radio.parent('gui-div');
 
 	// Other Various UI elements:
+
 	let brushDiv = createDiv();
 	brushDiv.parent('gui-div');
 	brushDiv.class('button-row');
@@ -71,7 +72,7 @@ function setup() {
 	brushSizeDisplay = createP('');
 	brushSizeDisplay.parent(brushDiv);
 
-	brushSizeSlider = createSlider(1, min(16, min(world.gridWidth, world.gridHeight)), 2, 1);
+	brushSizeSlider = createSlider(1, min(10, min(world.gridWidth, world.gridHeight)), 2, 1);
 	brushSizeSlider.parent(brushDiv);
 	brushReplaceCheckbox = createCheckbox('Replace?', true)
 	brushReplaceCheckbox.parent(brushDiv);
@@ -103,43 +104,6 @@ function setup() {
 	scaleDiv.parent('gui-div');
 	scaleDiv.class('button-row');
 
-	// resizeButton = createButton('Reset & Resize World<br>(may affect performance)')
-	// resizeButton.parent(scaleDiv);
-
-	// let resizeInputDiv = createDiv();
-	// resizeInputDiv.class('buttom-column');
-	// resizeInputDiv.parent(scaleDiv);
-
-	// sizeInputXlabel = createDiv('x: ');
-	// sizeInputXlabel.parent(resizeInputDiv);
-
-	// sizeInputX = createInput(world.gridWidth, 'number');
-	// sizeInputX.parent(sizeInputXlabel);
-	// sizeInputX.size(40, AUTO);
-
-	// sizeInputYlabel = createDiv('y: ')
-	// sizeInputYlabel.parent(resizeInputDiv);
-
-	// sizeInputY = createInput(world.gridWidth, 'number');
-	// sizeInputY.parent(sizeInputYlabel);
-	// sizeInputY.size(40, AUTO);
-
-	// resizeButton.mousePressed(function () {
-	// 	world.reset(parseInt(sizeInputX.value()), parseInt(sizeInputY.value()));
-	// 	updateCanvasSize();
-	// })
-
-	// scaleLabel = createP('Scale: ');
-	// scaleLabel.parent(scaleDiv);
-
-	// scaleSlider = createSlider(1, 16, pixelsPerParticle, 1);
-	// scaleSlider.parent(scaleDiv);
-	// scaleSlider.size(70, AUTO);
-	// scaleSlider.changed(function () {
-	// 	pixelsPerParticle = scaleSlider.value();
-	// 	updateCanvasSize();
-	// })
-
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
 
@@ -157,7 +121,13 @@ function draw() {
 	frameRate(frSlider.value())
 
 	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
+
+	//REMOVE WARNING MESSAGE
+	if(floor(averageFrameRate()) > 50){
+		document.getElementById("textDisplay").innerHTML = '';
+	}
 	handleMouseClick();
+
 	if (!paused) {
 		world.updateAll();
 	}
@@ -175,8 +145,8 @@ function draw() {
 
 
 updateCanvasSize = function () {
-	resizeCanvas(world.gridWidth * pixelsPerParticle,
-		world.gridHeight * pixelsPerParticle);
+	resizeCanvas(windowWidth / 5 * pixelsPerParticle,
+		windowHeight / 5 * pixelsPerParticle);
 	let canvas = document.getElementById('defaultCanvas0');
 	canvasContext = canvas.getContext('2d');
 }
@@ -202,14 +172,19 @@ pauseSim = function () {
 }
 
 resetWorld = function () {
-	let w = world.gridWidth;
-	let h = world.gridHeight;
+	let w = windowWidth / 5;
+	let h = windowHeight / 5;
 	world.reset(w, h);
+
+	resizeCanvas(windowWidth / 5 * pixelsPerParticle,
+		windowHeight / 5 * pixelsPerParticle);
+	let canvas = document.getElementById('defaultCanvas0');
+	canvasContext = canvas.getContext('2d');
 }
 
 
 handleMouseClick = function () {
-	if (mouseIsPressed) {
+	if (mouseIsPressed && floor(averageFrameRate()) > 50) {
 		let x = floor(mouseX / pixelsPerParticle);
 		let y = floor(mouseY / pixelsPerParticle);
 
@@ -251,28 +226,8 @@ handleMouseClick = function () {
 				}
 			}
 		}
-	}
-}
-
-
-randomFill = function () {
-	let action = radio.value();
-	let simplex = new SimplexNoise();
-
-	if (action != 'Delete') {
-		for (x = 1; x < world.gridWidth - 1; x++) {
-			for (y = 1; y < world.gridHeight - 1; y++) {
-				// TODO: Make the "map value" and threshold controllable
-				let map_value = randomScaleSlider.value();
-				let xnorm = map(x, 1, world.gridWidth - 1, -map_value, map_value);
-				let ynorm = map(y, 1, world.gridHeight - 1, -map_value, map_value);
-				if (simplex.noise2D(xnorm, ynorm) > randomThresholdSlider.value()) {
-					world.addPlaceable(
-						new PLACEABLE_TYPES[action](x, y, world),
-						brushReplaceCheckbox.checked());
-				}
-			}
-		}
+	}else if (mouseIsPressed){
+		document.getElementById("textDisplay").innerHTML = 'Give the program a moment...';
 	}
 }
 
