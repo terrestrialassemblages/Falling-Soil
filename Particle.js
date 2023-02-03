@@ -495,7 +495,13 @@ class SeedParticle extends SandParticle{
             if(count < 2){
                 this.delete();
                 neighbour_lower.delete();
-                let plant_p = new PlantParticle(this.x, this.y, world)
+                let plant_p;
+                if(random() < 0.5){
+                    plant_p = new PlantParticle(this.x, this.y, world)
+                }else{
+                    plant_p = new FlowerParticle(this.x, this.y, world)
+                }
+                
                 this.world.addParticle(plant_p);
                 this.world.addParticle(new RootParticle(plant_p, xl, yl, world));
             }else{
@@ -530,7 +536,8 @@ class PlantParticle extends Particle {
         this.watered = 0;
         this.nitrogen = 1;
         this.length = length;
-        this.lengthLimit = random(7, 20);
+        this.lengthLimit = random(10, 25);
+        this.branchLimit = 2;
 
         this.neighbourList = [
             //growth directions
@@ -587,10 +594,15 @@ class PlantParticle extends Particle {
 
             //if the plant particle has already grown 2 times, don't grow
             //print(count);
-            if(count < 2){
+            if(count < this.branchLimit){
                 if ((random() * this.nitrogen) > 0.5) {
                     //print('plant is growing');
-                    this.world.addParticle(new PlantParticle(xn, yn, world, this.length + 1));
+                    if(this instanceof FlowerParticle){
+                        this.world.addParticle(new FlowerParticle(xn, yn, world, this.length + 1));
+
+                    }else{
+                        this.world.addParticle(new PlantParticle(xn, yn, world, this.length + 1));
+                    }
                     this.setWater(-1);
                     if(this.nitrogen == 2){
                         this.nitrogen = 1;
@@ -618,6 +630,51 @@ class PlantParticle extends Particle {
         super.update();
     }
 
+}
+
+class FlowerParticle extends PlantParticle{
+    static BASE_COLOR = '#84db65';
+
+    constructor(x, y, world, length = 0){
+        super(x, y, world, length);
+        this.color_petal = adjustHSBofString('#cc2331', random(0.5, 1.5), 1, 1);
+        this.length = length;
+        this.lengthLimit = random(5, 15);
+        this.petalCount = 0;
+
+        this.randomPlacement = [round(random(-1, -1)), round(random(-1, -1))];
+
+        this.flowerList = [
+            [this.randomPlacement[0], this.randomPlacement[1]], //down petal
+            [this.randomPlacement[0], this.randomPlacement[1]-1], //centre
+            [this.randomPlacement[0]-1, this.randomPlacement[1]-1], //left petal
+            [this.randomPlacement[0]+1, this.randomPlacement[1]-1], //right petal
+            [this.randomPlacement[0], this.randomPlacement[1]-2], //top petal
+        ]
+
+    }
+
+    update(){
+        //if length is -1 its a petal
+        if(this.length != -1){    
+            if(this.length < this.lengthLimit){
+                //print('growing');
+                super.update();
+            }else{
+                if(this.petalCount < this.flowerList.length){
+                    let d = this.flowerList[this.petalCount];
+                    let xn = this.x + d[0];
+                    let yn = this.y + d[1];
+
+                    let newPetal = new FlowerParticle(xn, yn, world, -1);
+                    newPetal.color = this.color_petal;
+                    this.world.addParticle(newPetal);
+                    this.petalCount += 1;
+                }
+            }
+        }
+        
+    }
 }
 
 class RootParticle extends PlantParticle {

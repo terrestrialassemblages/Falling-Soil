@@ -93,8 +93,8 @@ function setup() {
 	resetButton.parent(simDiv);
 	resetButton.mouseClicked(resetWorld);
 
-	frSlider = createSlider(1, 60, 60, 1);
-	frSlider.parent(simDiv);
+	// frSlider = createSlider(1, 60, 60, 1);
+	// frSlider.parent(simDiv);
 
 	frDisplay = createP('');
 	frDisplay.parent(simDiv);
@@ -118,12 +118,12 @@ function setup() {
 }
 
 function draw() {
-	frameRate(frSlider.value())
+	frameRate(30)
 
 	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
 	//REMOVE WARNING MESSAGE
-	if(floor(averageFrameRate()) > 50){
+	if(floor(averageFrameRate()) > 25){
 		document.getElementById("textDisplay").innerHTML = '';
 	}
 	handleMouseClick();
@@ -184,7 +184,7 @@ resetWorld = function () {
 
 
 handleMouseClick = function () {
-	if (mouseIsPressed && floor(averageFrameRate()) > 50) {
+	if (mouseIsPressed && floor(averageFrameRate()) > 22) {
 		let x = floor(mouseX / pixelsPerParticle);
 		let y = floor(mouseY / pixelsPerParticle);
 
@@ -206,21 +206,10 @@ handleMouseClick = function () {
 							}
 						}
 						else {
-							//placing the plant and root next to each other
-							if(action == 'Plant'){
-								let plant = new PLACEABLE_TYPES[action](ix, iy, world);
-								world.addPlaceable(
-									plant,
-									brushReplaceCheckbox.checked());
-								world.addPlaceable(
-									new RootParticle(plant, ix, iy + 1, world),
-									brushReplaceCheckbox.checked());
-							}else{
-								//print(action);
-								world.addPlaceable(
-									new PLACEABLE_TYPES[action](ix, iy, world),
-									brushReplaceCheckbox.checked());
-							}
+							//print(action);
+							world.addPlaceable(
+							new PLACEABLE_TYPES[action](ix, iy, world),
+							brushReplaceCheckbox.checked());
 						}
 					}
 				}
