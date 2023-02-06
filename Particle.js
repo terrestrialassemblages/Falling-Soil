@@ -384,7 +384,7 @@ class Syn_FertParticle extends SandParticle {
     static BASE_COLOR = '#4f7052';
     constructor(x, y, world) {
         super(x, y, world);
-        this.weight = 50;
+        this.weight = 60;
         this.nitrogen = 1;
 
         //downwards positions to tell if there is soil to change
@@ -420,7 +420,7 @@ class Org_FertParticle extends SandParticle {
     static BASE_COLOR = '#705d4f';
     constructor(x, y, world) {
         super(x, y, world);
-        this.weight = 50;
+        this.weight = 60;
         this.nitrogen = 1;
 
         this.neighbourList = [
@@ -964,11 +964,18 @@ class WaterParticle extends FluidParticle {
 
             //if the nearest neighbour is soil and it's saturation level is less than 2
             //saturate it and delete this particle
-            if(neighbour instanceof SoilParticle && neighbour.getWater() < 2){
-                if(neighbour.state == 'healthy' || (neighbour.state == 'poor' && random < 0.3)){
+            if(neighbour instanceof SoilParticle){
+                if((neighbour.state == 'healthy' || (neighbour.state == 'poor' && random() < 0.3)) && neighbour.getWater() < 2){
                     neighbour.setWater(1);
                     this.delete();
                     break;
+                }else{
+                    if(this.weight == 60){
+                        this.weight = 40;
+                    }else{
+                        this.weight = 60;
+                    }
+                    
                 }
             }
         }
