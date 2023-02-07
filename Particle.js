@@ -942,6 +942,8 @@ class WaterParticle extends FluidParticle {
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = 60;
+        this.waterTimer = random(50, 200);
+        this.count = 0;
         this.neighbourList = [
             [-1, -1], //up left
             [+1, -1], //up right
@@ -970,15 +972,14 @@ class WaterParticle extends FluidParticle {
                     this.delete();
                     break;
                 }else{
-                    if(this.weight == 60){
+                    if(this.weight == 60 && this.count > this.waterTimer){
                         this.weight = 40;
-                    }else{
-                        this.weight = 60;
+                        this.count = 0;
                     }
-                    
                 }
             }
         }
+        this.count += 1;
     }
 
     evaporate() {
