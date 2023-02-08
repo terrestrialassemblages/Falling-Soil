@@ -503,7 +503,6 @@ class SeedParticle extends SandParticle{
                 }
                 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
-                plant_p.setNext(root_p);
                 this.world.addParticle(plant_p);
                 this.world.addParticle(root_p);
             }else{
@@ -539,13 +538,12 @@ class PlantParticle extends Particle {
         this.nitrogen = 1;
         this.length = length;
         this.lengthLimit = random(10, 25);
-        this.branchLimit = 2;
 
         this.prev = [];
         this.next = [];
 
-        this.setPrev(prev);
-        this.setNext(next);
+        this.linkTheList(prev, next);
+        
 
         this.neighbourList = [
             //growth directions
@@ -561,14 +559,32 @@ class PlantParticle extends Particle {
         ]
     }
 
+    //connecting the parts of a new particle so that functions can work correctly
+    linkTheList(prev, next){
+        this.setPrev(prev);
+        this.setNext(next);
+
+        //if we have a previous particle but the previous particle is not linked to us
+        //and vice versa
+        //then link it
+        
+        if(this.prev[0] && !this.prev[0].next.includes(this)){
+            this.prev[0].setNext(this);
+            //print(this.prev, this.prev[0].next);
+        }else if(this.next[0] && !this.next[0].prev.includes(this)){
+            this.next[0].setPrev(this);
+            //print(this.next, this.next[0].prev);
+        }
+    }
+
     setPrev(p){
-        if(!p){
+        if(p){
             append(this.prev, p);
         }
     }
 
     setNext(p){
-        if(!p){
+        if(p){
             append(this.next, p);
         }
     }
@@ -608,10 +624,16 @@ class PlantParticle extends Particle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if (this.watered == 1 && length < this.lengthLimit) {
+        // if(this instanceof FlowerParticle){
+        //     print(this.watered);
+        // }
+
+        if (this.watered == 1 && this.length < this.lengthLimit) {
             if (this.neighbourGrowthChecker(neighbour)) {
+                
                 // Check if the empty space I want to grow into doesn't have too
                 // many root neighbours
+
                 let count = 0;
                 for (let i = 0; i < this.neighbourList.length; i++) {
                     let dn = this.neighbourList[i];
@@ -622,20 +644,30 @@ class PlantParticle extends Particle {
                         count++;
                     }
                 }
+
+                // if(this instanceof FlowerParticle){
+                //     print(count);
+                // }
                 
                 //each plant particle may branch a different number of times
-                if(count < this.branchLimit){
+                if(count < 2){
                     if ((random() * this.nitrogen) > 0.5) {
+                        let p;
+
                         if(this instanceof HyphaeParticle){ 
+                            p = new HyphaeParticle(this, null, xn, yn, world, this.length +1);
                             neighbour.delete();
-                            this.world.addParticle(new HyphaeParticle(this, null, xn, yn, world, this.length +1));
+                            this.world.addParticle(p);
                         }else if(this instanceof RootParticle){
+                            p = new RootParticle(this, null, xn, yn, world, this.length +1);
                             neighbour.delete();
-                            this.world.addParticle(new RootParticle(this, null, xn, yn, world, this.length +1));
+                            this.world.addParticle(p);
                         }else if(this instanceof FlowerParticle){
-                            this.world.addParticle(new FlowerParticle(null, this, xn, yn, world, this.length +1));
+                            p = new FlowerParticle(null, this, xn, yn, world, this.length +1);
+                            this.world.addParticle(p);
                         }else if(this instanceof PlantParticle){
-                            this.world.addParticle(new PlantParticle(null, this, xn, yn, world, this.length +1));
+                            p = new PlantParticle(null, this, xn, yn, world, this.length +1);
+                            this.world.addParticle(p);
                         }
                         
                         this.setWater(-1);
@@ -649,20 +681,17 @@ class PlantParticle extends Particle {
             //if the neighbour that I want to grow into isn't soil
             //give my water and nitrogen upwards
             else{
-                if(this.prev.watered == 0){
-                    // if(neighbour instanceof PlantParticle){
-                    //     print('water is being given to plant');
-                    // }
-                    
-                    this.water_give(this, this.prev);
+                let prev_p = random(this.prev);
+                if(prev_p){
+                    if(prev_p.watered == 0){
+                        //print('water is moving');
+                        this.water_give(this, prev_p);
+                    }
+                    if(prev_p.nitrogen == 1 && this.nitrogen == 2){
+                        this.nitrogen_give(this, prev_p);
+                    }
                 }
-                if(this.prev.nitrogen == 1 && this.nitrogen == 2){
-                    // if(neighbour instanceof PlantParticle){
-                    //     print('nitrogen is being given to plant');
-                    // }
-                    this.nitrogen_give(this, this.prev);
-                }
-            }
+        }
 
         }
         else {
@@ -727,7 +756,6 @@ class RootParticle extends PlantParticle {
         super(previous, next, x, y, world);
 
         //previous particle kept to give water
-        this.prev = previous;
         this.length = length;
         this.neighbourList = [
             //growth positions
