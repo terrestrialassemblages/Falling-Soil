@@ -106,6 +106,7 @@ class Particle extends Placeable {
         return n_col;
 
     }
+
 }
 
 
@@ -610,6 +611,20 @@ class PlantParticle extends Particle {
         return;
     }
 
+    //ensures the links are still connected
+    //destroys particle if not
+    killPlant(){
+        //if the particle has been removed from the particle grid
+        //then kill it
+        if(this instanceof RootParticle){
+            //print('root delete');
+            destroyLinkedList(this, false, true);
+        }else{
+            //print('plant delete');
+            destroyLinkedList(this, true, false);
+        }
+    }
+
     update() {
         //choose a random direction from the top 3 tiles
         let d;
@@ -697,7 +712,6 @@ class PlantParticle extends Particle {
         else {
             this.nutrientRetrieval(neighbour);
         }
-
 
         super.update();
     }
@@ -962,6 +976,21 @@ class CloudParticle extends FluidParticle {
 
     condensate() {
         this.world.addParticle(new WaterParticle(this.x, this.y, this.world), true);
+    }
+}
+
+//function that uses recursion to destroy part of a list
+//checks are used to tell the program which way to go
+destroyLinkedList = function (p, prev_check, next_check){
+    this.delete();
+    if(prev_check == true && p.prev != []){
+        for(i = 0; i < p.prev.length; i++){
+            destroyLinkedList(p.prev[i], true, false);
+        }
+    }else if(next_check == true && p.next != []){
+        for(i = 0; i < p.next.length; i++){
+            destroyLinkedList(p.next[i], false, true);
+        }
     }
 }
 
