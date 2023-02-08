@@ -206,6 +206,10 @@ handleMouseClick = function () {
 							}
 						}
 						else {
+							let p = world.getPlaceable(ix, iy);
+							if (p) {
+								world.deletePlaceable(p);
+							}
 							//print(action);
 							world.addPlaceable(
 							new PLACEABLE_TYPES[action](ix, iy, world),

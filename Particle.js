@@ -537,11 +537,14 @@ class PlantParticle extends Particle {
         this.color_dry = adjustHSBofString(this.color, 0.7, 1, 1);
         this.watered = 0;
         this.nitrogen = 1;
+
         this.length = length;
         this.lengthLimit = random(10, 25);
 
         this.prev = [];
         this.next = [];
+
+        this.dead= false;
 
         this.linkTheList(prev, next);
         
@@ -611,19 +614,47 @@ class PlantParticle extends Particle {
         return;
     }
 
-    //ensures the links are still connected
-    //destroys particle if not
-    killPlant(){
-        //if the particle has been removed from the particle grid
-        //then kill it
-        if(this instanceof RootParticle){
-            //print('root delete');
-            destroyLinkedList(this, false, true);
-        }else{
-            //print('plant delete');
-            destroyLinkedList(this, true, false);
+    inGrid(){
+        if(this.world.particleGrid[this.x][this.y] == this){
+            return true;
+        }
+
+        return false;
+    }
+
+    // function that uses recursion to destroy part of a list
+    // checks are used to tell the program which way to go
+    destroyLinkedList(prev_check, next_check){
+        //print('destroying');
+        this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true)
+        if(prev_check == true){
+            for(i = 0; i < this.prev.length; i++){
+                if(this.prev[i].inGrid()){
+                    this.prev[i].destroyLinkedList(true, false);
+                }
+            }
+        }else if(next_check == true){
+            for(i = 0; i < this.next.length; i++){
+                if(this.next[i].inGrid()){
+                    this.next[i].destroyLinkedList(false, true);
+                }
+            }
         }
     }
+
+    //ensures the links are still connected
+    //destroys particle if not
+    // killPlant(){
+    //     //if the particle has been removed from the particle grid
+    //     //then kill it
+    //     if(this instanceof RootParticle){
+    //         //print('root delete');
+    //         destroyLinkedList(this, false, true);
+    //     }else{
+    //         //print('plant delete');
+    //         destroyLinkedList(this, true, false);
+    //     }
+    // }
 
     update() {
         //choose a random direction from the top 3 tiles
@@ -671,12 +702,10 @@ class PlantParticle extends Particle {
 
                         if(this instanceof HyphaeParticle){ 
                             p = new HyphaeParticle(this, null, xn, yn, world, this.length +1);
-                            neighbour.delete();
-                            this.world.addParticle(p);
+                            this.world.addParticle(p, true);
                         }else if(this instanceof RootParticle){
                             p = new RootParticle(this, null, xn, yn, world, this.length +1);
-                            neighbour.delete();
-                            this.world.addParticle(p);
+                            this.world.addParticle(p, true);
                         }else if(this instanceof FlowerParticle){
                             p = new FlowerParticle(null, this, xn, yn, world, this.length +1);
                             this.world.addParticle(p);
@@ -708,8 +737,7 @@ class PlantParticle extends Particle {
                 }
         }
 
-        }
-        else {
+        }else {
             this.nutrientRetrieval(neighbour);
         }
 
@@ -757,8 +785,8 @@ class FlowerParticle extends PlantParticle{
                     this.petalCount += 1;
                 }
             }
-        }
         
+        }
     }
 }
 
@@ -798,8 +826,7 @@ class RootParticle extends PlantParticle {
         let neighbour = this.world.getParticle(xn, yn);
 
         if(!(this instanceof HyphaeParticle) && random() < 0.1 && neighbour instanceof SoilParticle){
-            neighbour.delete();
-            this.world.addParticle(new HyphaeParticle(this, null, xn, yn, world));
+            this.world.addParticle(new HyphaeParticle(this, null, xn, yn, world), true);
         }
     }
 
@@ -986,22 +1013,6 @@ class CloudParticle extends FluidParticle {
         this.world.addParticle(new WaterParticle(this.x, this.y, this.world), true);
     }
 }
-
-//function that uses recursion to destroy part of a list
-//checks are used to tell the program which way to go
-destroyLinkedList = function (p, prev_check, next_check){
-    this.delete();
-    if(prev_check == true && p.prev != []){
-        for(i = 0; i < p.prev.length; i++){
-            destroyLinkedList(p.prev[i], true, false);
-        }
-    }else if(next_check == true && p.next != []){
-        for(i = 0; i < p.next.length; i++){
-            destroyLinkedList(p.next[i], false, true);
-        }
-    }
-}
-
 
 adjustHSBofString = function (colorString, scaleH, scaleS, scaleB) {
     let c = color(colorString);
