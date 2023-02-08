@@ -102,6 +102,16 @@ class World {
         else if (p instanceof Zone) {
             this.zoneGrid[p.x][p.y] = false;
         }
+
+        //delete whole plant if a part gets destroyed
+        if(p instanceof RootParticle){
+            //print('root delete');
+            p.destroyLinkedList(false, true);
+        }else if(p instanceof PlantParticle){
+            //print('plant delete');
+            p.destroyLinkedList(true, false);
+        }
+
         this.redrawGrid[p.x][p.y] = true;
         this.placeableSet.delete(p);
     }
