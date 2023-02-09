@@ -292,64 +292,6 @@ class MoveableParticle extends Particle {
 }
 
 
-
-class OrganismParticle extends Particle {
-    static BASE_COLOR = '#a11ee3';
-
-    //removed nn
-    constructor(x, y, world){
-        super(x, y, world);
-        //does the organism have nutrients to share with the plant?
-        //this.nitrogen = nn;
-        this.movement_count = 40;
-        this.neighbourList = [
-            [0, -1], //up
-            [-1, -1], //up left
-            [+1, -1], //up right
-            [+1, +1], //down right
-            [0, +1], //down
-            [-1, +1], //down left
-            [+1, 0], //right
-            [-1, 0] //left
-        ]
-    }
-
-    update() {
-        if(this.movement_count == 0){
-            //choose a random direction
-            let d = random(this.neighbourList);
-
-            //get new positions and particle
-            let xn = this.x + d[0];
-            let yn = this.y + d[1];
-            let neighbour = this.world.getParticle(xn, yn);
-
-            if(neighbour instanceof SoilParticle){
-                //what is the soil like?
-                if(this.nitrogen < 2){
-                    neighbour.nitrogen_give(neighbour, this);
-                }
-                
-                //move the organism into a new place
-                this.delete();
-                neighbour.moveToGridPosition(this.x, this.y)
-                neighbour.setState('healthy');
-                //removed this.nitrogen
-                this.world.addParticle(new OrganismParticle(xn, yn, world));
-
-            }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
-                neighbour.nitrogen_give(this, neighbour);
-            }else if(!neighbour){
-                this.delete();
-            }
-
-            this.movement_count = 40;
-        }else{
-            this.movement_count -= 1;
-        }
-    }
-}
-
 class SandParticle extends MoveableParticle {
 
     static BASE_COLOR = '#e5b55f';
@@ -388,7 +330,77 @@ class SandParticle extends MoveableParticle {
     }
 }
 
+class OrganismParticle extends SandParticle {
+    static BASE_COLOR = '#a11ee3';
+
+    //removed nn
+    constructor(x, y, world){
+        super(x, y, world);
+        //does the organism have nutrients to share with the plant?
+        //this.nitrogen = nn;
+        this.movement_count = 40;
+        this.neighbourList = [
+            [0, -1], //up
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, +1], //down right
+            [0, +1], //down
+            [-1, +1], //down left
+            [+1, 0], //right
+            [-1, 0] //left
+        ]
+    }
+
+    update() {
+        // check whether the particle needs to fall
+        let groundCheck = false;
+        if(this.world.getParticle(this.x, this.y+1) instanceof SoilParticle || this.world.getParticle(this.x, this.y-1) instanceof SoilParticle){
+            groundCheck = true;
+        }
+
+        if(groundCheck == true){
+            if(this.movement_count == 0){
+                //choose a random direction
+                let d = random(this.neighbourList);
+    
+                //get new positions and particle
+                let xn = this.x + d[0];
+                let yn = this.y + d[1];
+                let neighbour = this.world.getParticle(xn, yn);
+    
+                if(neighbour instanceof SoilParticle){
+                    //what is the soil like?
+                    if(this.nitrogen < 2){
+                        neighbour.nitrogen_give(neighbour, this);
+                    }
+                    
+                    //move the organism into a new place
+                    this.delete();
+                    neighbour.moveToGridPosition(this.x, this.y)
+                    neighbour.setState('healthy');
+                    //removed this.nitrogen
+                    this.world.addParticle(new OrganismParticle(xn, yn, world));
+    
+                }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
+                    neighbour.nitrogen_give(this, neighbour);
+                }else if(!neighbour){
+                    this.delete();
+                }
+    
+                this.movement_count = 40;
+            }else{
+                this.movement_count -= 1;
+            }
+        }else{
+            super.update();
+        }
+        
+    }
+}
+
 class MiteParticle extends SandParticle {
+    static BASE_COLOR = '#eb34d5'
+
     constructor(x, y , world){
         super(x, y, world);
         this.movementCount = random(25, 200);

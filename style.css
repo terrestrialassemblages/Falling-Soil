@@ -126,6 +126,11 @@ input#Biomass + label {
   color: black;
 }
 
+input#Mite + label {
+  background: #eb34d5;
+  color: black;
+}
+
 /* border around labels */
 input[type=radio]:checked + label {
   border-left: solid var(--button-border-width) #ffffff;
