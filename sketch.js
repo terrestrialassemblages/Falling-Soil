@@ -37,6 +37,7 @@ const PLACEABLE_TYPES = {
 	'Bug' : OrganismParticle,
 	'Nitrogen' : Syn_FertParticle,
 	'Biomass' : Org_FertParticle,
+	'Mite' : MiteParticle,
 }
 
 
