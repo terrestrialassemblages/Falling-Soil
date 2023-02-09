@@ -107,6 +107,11 @@ function setup() {
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
 
+	//create sun
+	world.addPlaceable(
+		new SunParentParticle(20, 15, world),
+		true);
+
 
 	// mousePressed = function() {
 

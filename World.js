@@ -7,6 +7,7 @@ class World {
         this.gridWidth = gridWidth;
         this.gridHeight = gridHeight;
         this.placeableSet = new Set();
+        
         this.initializeEmptyGrids();
     }
 

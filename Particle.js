@@ -132,6 +132,55 @@ class IndestructibleWallParticle extends WallParticle {
     }
 }
 
+//sun parent holds the sun particles
+class SunParentParticle extends WallParticle {
+    static BASE_COLOR = '#fcba03';
+
+    constructor(x, y, world){
+        super(x, y, world);
+        this.indestructible = true;
+        this.sunParticles = [];
+
+        this.size = 6;
+
+        for(let i = this.size * -1; i <= this.size; i++){
+            for(let j = this.size * -1; j <= this.size; j++){
+
+                if((i != this.size * -1 && i != this.size) || (j != this.size * -1 && j != this.size)){
+                    let p = new SunChildParticle(this.x + i, this.y + j, world)
+                    this.world.addParticle(p);
+                    append(this.sunParticles, p);
+                }
+                
+            }
+        }
+
+    }
+
+    // update(){
+    //     for(let i = 0; i < this.sunParticles.length; i++){
+    //         this.sunParticles[i].movePOS(1, 0);
+    //     }
+    // }
+
+}
+
+//sun child particles are what is shown
+class SunChildParticle extends WallParticle{
+    static BASE_COLOR = '#fcba03';
+
+    constructor(x, y, world){
+        super(x, y, world);
+        //this.indestructible = true;
+    }
+
+    // movePOS(x, y){
+    //     this.x = this.x + x;
+    //     this.y = this.y + y;
+    //     this.world.moveParticleInGrid(this, this.x, this.y);
+    // }
+}
+
 
 class MoveableParticle extends Particle {
     // Parent for particles that can move and displace each other.
@@ -239,6 +288,12 @@ class MoveableParticle extends Particle {
         }
 
         otherParticle.hasBeenDisplaced = true;
+    }
+}
+
+class MiteParticle extends MoveableParticle {
+    constructor(x, y , world){
+        this.movementCount = random(25, 200);
     }
 }
 
