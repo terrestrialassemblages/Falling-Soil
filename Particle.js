@@ -291,11 +291,7 @@ class MoveableParticle extends Particle {
     }
 }
 
-class MiteParticle extends MoveableParticle {
-    constructor(x, y , world){
-        this.movementCount = random(25, 200);
-    }
-}
+
 
 class OrganismParticle extends Particle {
     static BASE_COLOR = '#a11ee3';
@@ -389,6 +385,101 @@ class SandParticle extends MoveableParticle {
         super.update();
         return moved;
 
+    }
+}
+
+class MiteParticle extends SandParticle {
+    constructor(x, y , world){
+        super(x, y, world);
+        this.movementCount = random(25, 200);
+        // > 0.5 is up
+        this.hop = random();
+        // > 0.5 is left
+        this.direction = random();
+        this.upCheck = true;
+        this.weight = 5;
+        this.height = -1;
+        this.heightLimit;
+
+        this.setHeight();
+        
+    }
+
+    setHeight(){
+        if(this.hop > 0.5){
+            this.heightLimit = 1;
+        }else{
+            this.heightLimit = random(1, 3);
+        }
+    }
+
+    update(){
+        //check if theres ground beneath the mite
+        //if so, reset all the constructors
+        let groundCheck = false;
+        if(this.world.getParticle(this.x, this.y+1)){
+            groundCheck = true;
+            this.height = 0;
+            this.hop = random();
+            this.direction = random();
+            this.upCheck = true;
+            this.setHeight();
+        }
+
+        let move;
+
+        //movement code
+        if(this.height >= 0){
+            if(this.upCheck == false){
+                if(this.hop > 0.5){
+                    move = this.tryGridPosition(this.x, this.y+1);
+                    //print(move, 'hop up');
+                    this.upCheck = true;
+                }else{
+                    if(this.direction > 0.5){
+                        move = this.tryGridPosition(this.x-1, this.y+1);
+                        //print(move, 'up left');
+                    }else{
+                        move = this.tryGridPosition(this.x+1, this.y+1);
+                        //print(move, 'up right');
+                    }
+                }
+                this.height--;
+            }else{
+                if(this.hop > 0.5){
+                    move = this.tryGridPosition(this.x, this.y-1);
+                    //print(move, 'hop down');
+                    this.upCheck = false;
+                }else{
+                    //left
+                    if(this.direction > 0.5){
+                        move = this.tryGridPosition(this.x-1, this.y-1);
+                        //print(move, 'down left');
+                    }else{
+                        move = this.tryGridPosition(this.x+1, this.y-1);
+                        //print(move, 'down right');
+                    }
+                }
+                this.height++;
+
+                if(this.height == this.heightLimit){
+                    this.upCheck = false;
+                }
+                
+            }
+
+        //if the movement didnt execute
+        //move to falling
+        if(move == false){
+            this.height = -1;
+        }
+
+        //if weve excuted the movement and theres still no ground beneath us
+        //fall
+        }else if(this.height < 0 && groundCheck == false){
+            super.update();
+        }
+        
     }
 }
 
