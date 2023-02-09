@@ -291,11 +291,7 @@ class MoveableParticle extends Particle {
     }
 }
 
-class MiteParticle extends MoveableParticle {
-    constructor(x, y , world){
-        this.movementCount = random(25, 200);
-    }
-}
+
 
 class OrganismParticle extends Particle {
     static BASE_COLOR = '#a11ee3';
@@ -389,6 +385,48 @@ class SandParticle extends MoveableParticle {
         super.update();
         return moved;
 
+    }
+}
+
+class MiteParticle extends SandParticle {
+    constructor(x, y , world){
+        this.movementCount = random(25, 200);
+        this.hop = random();
+        this.weight = 5;
+        this.height = 0;
+        this.heightLimit;
+
+        this.setHeight();
+        
+    }
+
+    setHeight(){
+        if(this.hop > 0.5){
+            this.heightLimit = 1;
+        }else{
+            this.heightLimit = random(3, 7);
+        }
+    }
+
+    update(){
+        //check if theres ground beneath the mite
+        let groundCheck = false;
+        for(let i = 0; i < this.updateList.length; i++){
+            if(this.world.getParticle(x, y)){
+                groundCheck = true;
+            }
+        }
+        if(groundCheck == true && this.height > 0){
+            if(this.hop > 0.5){
+                if(this.height == this.heightLimit){
+                    this.tryGridPosition()
+                }
+                
+            }
+        }else{
+            super.update();
+        }
+        
     }
 }
 
