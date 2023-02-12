@@ -94,6 +94,7 @@ input[type=radio]:checked + label{
   background: var(--button-checked-color)
 }
 
+/* individual styling for each button using ids*/
 input#Water + label {
   background: #2b63c3;
 }

@@ -50,7 +50,7 @@ function setup() {
 	// Create p5 Canvas
 	let p5canvas = createCanvas(pixelsPerParticle * world.gridWidth,
 		pixelsPerParticle * world.gridHeight);
-	// pixelDensity(1);
+	//pixelDensity(1);
 
 	// Add the canvas to the page
 	p5canvas.parent('canvas-div');
@@ -65,7 +65,7 @@ function setup() {
 	radio.parent('gui-div');
 
 	// Other Various UI elements:
-
+	//brush size elements and slider
 	let brushDiv = createDiv();
 	brushDiv.parent('gui-div');
 	brushDiv.class('button-row');
@@ -78,10 +78,7 @@ function setup() {
 	brushReplaceCheckbox = createCheckbox('Replace?', true)
 	brushReplaceCheckbox.parent(brushDiv);
 
-	let randomDiv = createDiv();
-	randomDiv.parent('gui-div');
-	randomDiv.class('button-row');
-
+	//pause and reset button
 	let simDiv = createDiv();
 	simDiv.parent('gui-div');
 	simDiv.class('button-row');
@@ -94,17 +91,12 @@ function setup() {
 	resetButton.parent(simDiv);
 	resetButton.mouseClicked(resetWorld);
 
-	// frSlider = createSlider(1, 60, 60, 1);
-	// frSlider.parent(simDiv);
-
+	//framerate
 	frDisplay = createP('');
 	frDisplay.parent(simDiv);
 	frHistory = new Array(60);
 
-	let scaleDiv = createDiv();
-	scaleDiv.parent('gui-div');
-	scaleDiv.class('button-row');
-
+	//particle numbers display
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
 
@@ -113,10 +105,6 @@ function setup() {
 		new SunParentParticle(20, 15, world),
 		true);
 
-
-	// mousePressed = function() {
-
-	// }
 	// ******************** SETUP WORLD ********************
 	// world.initializeEmptyGrid();
 
@@ -124,14 +112,16 @@ function setup() {
 }
 
 function draw() {
+	//set the framerate
 	frameRate(30)
 
 	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
-	//REMOVE WARNING MESSAGE
+	//Remove the low framerate warning message
 	if(floor(averageFrameRate()) > 25){
 		document.getElementById("textDisplay").innerHTML = '';
 	}
+
 	handleMouseClick();
 
 	if (!paused) {
@@ -139,11 +129,12 @@ function draw() {
 	}
 
 	canvasContext.save()
-	//background('#131622');
+
 	// Separate loop for showing because sometimes particles will be moved by others after they update
 	world.showAll(canvasContext, pixelsPerParticle);
 	canvasContext.restore();
 
+	//show framerate and particle display
 	frDisplay.html('Average FPS: ' + floor(averageFrameRate()));
 	numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
 	// noLoop();
@@ -151,8 +142,10 @@ function draw() {
 
 
 updateCanvasSize = function () {
+	//change canvas to always be window size / 5
 	resizeCanvas(windowWidth / 5 * pixelsPerParticle,
 		windowHeight / 5 * pixelsPerParticle);
+
 	let canvas = document.getElementById('defaultCanvas0');
 	canvasContext = canvas.getContext('2d');
 }
@@ -190,12 +183,15 @@ resetWorld = function () {
 
 
 handleMouseClick = function () {
-	if (mouseIsPressed && floor(averageFrameRate()) > 22) {
+	//only allow the adding of pixels if the framerate is above 25
+	if (mouseIsPressed && floor(averageFrameRate()) > 25) {
 		let x = floor(mouseX / pixelsPerParticle);
 		let y = floor(mouseY / pixelsPerParticle);
 
+		//add particles if mouse click is within world bounds
 		if (x <= world.gridWidth - 2 && x >= 1 && y <= world.gridHeight - 2 && y >= 1) {
 
+			//add particles relative to the brush size
 			let brushSize = brushSizeSlider.value();
 			let imin = floor(-0.5 * (brushSize - 1));
 
@@ -204,19 +200,25 @@ handleMouseClick = function () {
 				for (j = imin; j < imin + brushSize; j++) {
 					let iy = y + j;
 					if (ix <= world.gridWidth - 2 && ix >= 1 && iy <= world.gridHeight - 2 && iy >= 1) {
+						//get action from button selected
 						let action = radio.value();
+
+						//remove particle from update grid if deleting
 						if (action === 'Delete') {
 							let p = world.getPlaceable(ix, iy);
 							if (p) {
 								world.deletePlaceable(p);
 							}
 						}
+
 						else {
+							//this ensures that the deletion gets recorded and plant death occurs
 							let p = world.getPlaceable(ix, iy);
 							if (p) {
 								world.deletePlaceable(p);
 							}
-							//print(action);
+
+							//add particle
 							world.addPlaceable(
 							new PLACEABLE_TYPES[action](ix, iy, world),
 							brushReplaceCheckbox.checked());
@@ -225,12 +227,10 @@ handleMouseClick = function () {
 				}
 			}
 		}
+
+	//show error message if framerate is too high
 	}else if (mouseIsPressed){
 		document.getElementById("textDisplay").innerHTML = 'Give the program a moment...';
 	}
 }
 
-function touchMoved() {
-	// do some stuff
-	return false;
-} 

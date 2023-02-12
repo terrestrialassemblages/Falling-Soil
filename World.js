@@ -15,6 +15,7 @@ class World {
         this.particleGrid = [];
         this.redrawGrid = [];
         this.zoneGrid = [];
+
         for (let x = 0; x < this.gridWidth; x++) {
             this.particleGrid[x] = [];
             this.redrawGrid[x] = [];
@@ -54,6 +55,7 @@ class World {
     /**
     * @param {Placeable} p
     */
+
     addPlaceable(p, replace = false) {
         if (p instanceof Particle) {
             this.addParticle(p, replace);
@@ -106,10 +108,8 @@ class World {
 
         //delete whole plant if a part gets destroyed
         if(p instanceof RootParticle){
-            //print('root delete');
             p.destroyLinkedList(false, true);
         }else if(p instanceof PlantParticle){
-            //print('plant delete');
             p.destroyLinkedList(true, false);
         }
 
