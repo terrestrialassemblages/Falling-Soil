@@ -34,7 +34,7 @@ const PLACEABLE_TYPES = {
 	'Water': WaterParticle,
 	'Vapour': CloudParticle,
 	'Seed' : SeedParticle,
-	'Bug' : OrganismParticle,
+	'Germ' : MicrobeParticle,
 	'Nitrogen' : Syn_FertParticle,
 	'Biomass' : Org_FertParticle,
 	'Mite' : MiteParticle,

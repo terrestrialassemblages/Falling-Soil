@@ -1,7 +1,7 @@
+//the main class that everything inherits from
 class Particle extends Placeable {
 
     static BASE_COLOR = '#FFFFFF';
-    static BURNING_COLOR = '#E65C00';
 
     /**
     * @param {World} world
@@ -9,47 +9,17 @@ class Particle extends Placeable {
     constructor(x, y, world) {
         super(x, y, world);
 
+        //each particle has a base colour that dictates its normal colour
         let c = this.constructor.BASE_COLOR;
         this.color = adjustHSBofString(c, 1, random(0.95, 1.05), random(0.95, 1.05));
         this.originalColor = this.color;
-
-        this.flammability = 0;
-        this.fuel = Infinity;
-        this.originalFuel = 0;
-        this._burning = false;
     }
 
     /**
     * @param {boolean} b
     */
-    set burning(b) {
-        if (b) {
-            if (!this._burning) {
-                this.originalFuel = max(this.originalFuel, this.fuel);
-                this.originalColor = this.color;
-            }
-        }
-        else {
-            if (this instanceof FluidParticle) {
-                this.color = this.originalColor;
-            }
-            else {
-                this.color = adjustHSBofString(
-                    this.originalColor, 1, 1, map(this.fuel, 0, this.originalFuel, 0.2, 1));
-            }
-        }
-        this._burning = b;
-    }
-
-    get burning() {
-        return this._burning;
-    }
 
     update() {
-        if (this.burning) {
-            this.burn();
-        }
-
         return super.update();
     }
 
@@ -83,15 +53,22 @@ class Particle extends Placeable {
     //new_p signifies a new particle, which multiplies the colour change
     change_colour(colour, water_change = 0, nitro_change = 0, new_p = false){
         let n_col = colour;
+        //water colour change
         if(water_change > 0){
+            //if the particle is a copy of another one
+            //multiply the colour change so it shows correctly
             if(new_p){
                 n_col = adjustHSBofString(n_col, pow(0.9, water_change), pow(1.1, water_change), pow(0.9, water_change))
             }else{
                 n_col = adjustHSBofString(n_col, 0.9, 1.1, 0.9);
             }
+
+        // reversed colour change to bring it back to normal
         }else if(water_change  == -1){
             n_col = adjustHSBofString(n_col, 1.1, 0.9, 1.1);
         }
+
+        //nitrogen colour change
         if(nitro_change > 1){
             if(new_p){
                 n_col = adjustHSBofString(n_col, pow(0.9, nitro_change-1), pow(0.9, nitro_change-1), pow(1.1, nitro_change-1))
@@ -103,6 +80,7 @@ class Particle extends Placeable {
             n_col = adjustHSBofString(n_col, 1.1, 1.1, 0.9);
         }
         
+        //return the changed colour
         return n_col;
 
     }
@@ -125,7 +103,7 @@ class IndestructibleWallParticle extends WallParticle {
 
     // These are the particles used to define the border of the world so I don't
     // have to worry about checking the edges of the array. They are
-    // indesctructible so sinks can't destroy them.
+    // indesctructible
     constructor(x, y, world) {
         super(x, y, world);
         this.indestructible = true;
@@ -133,19 +111,23 @@ class IndestructibleWallParticle extends WallParticle {
 }
 
 //sun parent holds the sun particles
+//that way they can be moved and accessed reliably
 class SunParentParticle extends WallParticle {
     static BASE_COLOR = '#fcba03';
 
     constructor(x, y, world){
         super(x, y, world);
         this.indestructible = true;
+        //the list of the printed particles
         this.sunParticles = [];
 
+        //size of the square * 2
         this.size = 6;
 
         for(let i = this.size * -1; i <= this.size; i++){
             for(let j = this.size * -1; j <= this.size; j++){
 
+                //create a square with removed edges
                 if((i != this.size * -1 && i != this.size) || (j != this.size * -1 && j != this.size)){
                     let p = new SunChildParticle(this.x + i, this.y + j, world)
                     this.world.addParticle(p);
@@ -157,6 +139,9 @@ class SunParentParticle extends WallParticle {
 
     }
 
+    //this movement code doesnt remove the previous sun particle position
+    //so it just turns into a giant worm on the screen
+
     // update(){
     //     for(let i = 0; i < this.sunParticles.length; i++){
     //         this.sunParticles[i].movePOS(1, 0);
@@ -165,13 +150,13 @@ class SunParentParticle extends WallParticle {
 
 }
 
-//sun child particles are what is shown
+//sun child particles are what is shown in the program
 class SunChildParticle extends WallParticle{
     static BASE_COLOR = '#fcba03';
 
     constructor(x, y, world){
         super(x, y, world);
-        //this.indestructible = true;
+        this.indestructible = true;
     }
 
     // movePOS(x, y){
@@ -183,7 +168,7 @@ class SunChildParticle extends WallParticle{
 
 
 class MoveableParticle extends Particle {
-    // Parent for particles that can move and displace each other.
+    // parent for particles that can move and displace each other.
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = Infinity;
@@ -292,19 +277,21 @@ class MoveableParticle extends Particle {
 }
 
 
-class SandParticle extends MoveableParticle {
-
+class FallingParticle extends MoveableParticle {
+    //Parent for particles that can fall
     static BASE_COLOR = '#e5b55f';
 
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = 90;
+        //lower three particles
         this.updateList = [
-            [+0, +1],
-            [-1, +1],
-            [+1, +1]
+            [+0, +1], //down
+            [-1, +1], //down left
+            [+1, +1] //down right
         ]
 
+        //randomly switch up the movement
         if (random() > 0.5) {
             let temp = this.updateList[1];
             this.updateList[1] = this.updateList[2];
@@ -316,6 +303,8 @@ class SandParticle extends MoveableParticle {
         let moved = false;
         let i = 0;
 
+        //for each position in the update list
+        //check if the particle can move there
         for (let i = 0; i < this.updateList.length; i++) {
             let u = this.updateList[i];
             moved = this.tryGridPosition(this.x + u[0], this.y + u[1]);
@@ -330,15 +319,15 @@ class SandParticle extends MoveableParticle {
     }
 }
 
-class OrganismParticle extends SandParticle {
+class MicrobeParticle extends FallingParticle {
     static BASE_COLOR = '#a11ee3';
 
-    //removed nn
     constructor(x, y, world){
         super(x, y, world);
-        //does the organism have nutrients to share with the plant?
-        //this.nitrogen = nn;
+
+        //the microbe has to wait for 40 frames before moving
         this.movement_count = 40;
+        //spaces it can move
         this.neighbourList = [
             [0, -1], //up
             [-1, -1], //up left
@@ -353,13 +342,16 @@ class OrganismParticle extends SandParticle {
 
     update() {
         // check whether the particle needs to fall
+        //ie no ground beneath or above it
         let groundCheck = false;
         if(this.world.getParticle(this.x, this.y+1) instanceof SoilParticle || this.world.getParticle(this.x, this.y-1) instanceof SoilParticle){
             groundCheck = true;
         }
 
         if(groundCheck == true){
+            //if the count is up then move
             if(this.movement_count == 0){
+
                 //choose a random direction
                 let d = random(this.neighbourList);
     
@@ -369,47 +361,53 @@ class OrganismParticle extends SandParticle {
                 let neighbour = this.world.getParticle(xn, yn);
     
                 if(neighbour instanceof SoilParticle){
-                    //what is the soil like?
+                    //If the soil has good nitrogen, take it
                     if(this.nitrogen < 2){
                         neighbour.nitrogen_give(neighbour, this);
                     }
                     
-                    //move the organism into a new place
-                    this.delete();
-                    neighbour.moveToGridPosition(this.x, this.y)
+                    //move the microbe into a new place
+                    //move the soil that was there into our old spot
+                    this.tryGridPosition(xn, yn, true)
                     neighbour.setState('healthy');
-                    //removed this.nitrogen
-                    this.world.addParticle(new OrganismParticle(xn, yn, world));
     
-                }else if(neighbour instanceof PlantParticle || neighbour instanceof RootParticle || neighbour instanceof HyphaeParticle){
+                //if ur neighbour is a plant instead, give it your nitrogen
+                }else if(neighbour instanceof PlantParticle){
                     neighbour.nitrogen_give(this, neighbour);
-                }else if(!neighbour){
-                    this.delete();
+                
                 }
-    
+
+                //reset movement counter
                 this.movement_count = 40;
             }else{
+
+                //count down to movement
                 this.movement_count -= 1;
             }
         }else{
+            //fall if there is nothing beneath or on top of u
             super.update();
         }
         
     }
 }
 
-class MiteParticle extends SandParticle {
+class MiteParticle extends FallingParticle {
     static BASE_COLOR = '#eb34d5'
 
     constructor(x, y , world){
         super(x, y, world);
-        this.movementCount = random(25, 200);
-        // > 0.5 is up
+        // > 0.5 is hopping up and down
+        // < 0.5 is doing a big jump left or right
         this.hop = random();
         // > 0.5 is left
+        // < 0.5 is right
         this.direction = random();
+
+        //the mite starts off by going up
         this.upCheck = true;
         this.weight = 5;
+        //start by assuming you are falling
         this.height = -1;
         this.heightLimit;
 
@@ -421,7 +419,7 @@ class MiteParticle extends SandParticle {
         if(this.hop > 0.5){
             this.heightLimit = 1;
         }else{
-            this.heightLimit = random(1, 3);
+            this.heightLimit = random(1, 7);
         }
     }
 
@@ -474,7 +472,8 @@ class MiteParticle extends SandParticle {
                 }
                 this.height++;
 
-                if(this.height == this.heightLimit){
+                //if its reached the height limit go down
+                if(this.height > this.heightLimit){
                     this.upCheck = false;
                 }
                 
@@ -495,18 +494,19 @@ class MiteParticle extends SandParticle {
     }
 }
 
-class SoilParticle extends SandParticle {
+class SoilParticle extends FallingParticle {
     static BASE_COLOR = '#755127';
 
     constructor(x, y, world) {
         super(x, y, world);
         let state;
         this.watered = 0;
+
         this.color_healthy = this.color;
         this.color_poor = adjustHSBofString(this.color, 0.5, 1, 1);
-        //lighter than water
         this.weight = 50;
 
+        //choose a random soil state with corresponding nitrogen
         if(random() > 0.5){
             state = 'healthy';
             this.nitrogen = 2;
@@ -539,10 +539,13 @@ class SoilParticle extends SandParticle {
     }
 }
 
-class Syn_FertParticle extends SandParticle {
+class Syn_FertParticle extends FallingParticle {
     static BASE_COLOR = '#4f7052';
+
     constructor(x, y, world) {
         super(x, y, world);
+
+        //heavier than soil so will saturate better
         this.weight = 60;
         this.nitrogen = 1;
 
@@ -555,8 +558,11 @@ class Syn_FertParticle extends SandParticle {
     }
 
     update(){
+        //falling movement
         super.update();
+
         for(let i = 0; i < this.neighbourList.length; i++) {
+            //get particle
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
             let ynn = this.y + dn[1];
@@ -566,6 +572,8 @@ class Syn_FertParticle extends SandParticle {
                 //if the nearest soil is healthy, turn it poor
                 if(neighbour.state == 'healthy'){
                     neighbour.setState('poor');
+
+                    //give it your nitrogen and delete this particle
                     neighbour.nitrogen_give(this, neighbour);
                     this.delete();
                     break;
@@ -575,8 +583,11 @@ class Syn_FertParticle extends SandParticle {
     }
 }
 
-class Org_FertParticle extends SandParticle {
+class Org_FertParticle extends FallingParticle {
+    //same code as synthetic fertiliser
+    //but poor soil turns healthy
     static BASE_COLOR = '#705d4f';
+
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = 60;
@@ -610,11 +621,14 @@ class Org_FertParticle extends SandParticle {
     }
 }
 
-class SeedParticle extends SandParticle{
+class SeedParticle extends FallingParticle{
     static BASE_COLOR = '#fcba03';
+
     constructor(x, y, world){
         super(x, y, world);
         this.weight = 50;
+
+        //counts to decide whether to turn the seed into biomass
         this.remove_count = 0;
         this.remove_threshhold = random(200, 1000);
 
@@ -630,30 +644,35 @@ class SeedParticle extends SandParticle{
     }
 
     update(){
-        //upper particle
+        //particle above this
         let xu = this.x;
         let yu = this.y - 1;
         let neighbour_upper = this.world.getParticle(xu, yu);
 
-        //lower particle
+        //particle below this
         let xl = this.x;
         let yl = this.y + 1;
         let neighbour_lower = this.world.getParticle(xl, yl);
 
+        //if the particle above this has nothing in it
+        //and below us is soil
+        //then grow
         if(!neighbour_upper && neighbour_lower instanceof SoilParticle){
             let count = 0;
+
+            //make sure you aren't growing too close to another plant
             for (let i = 0; i < this.neighbourList.length; i++) {
                 let dn = this.neighbourList[i];
                 let xnn = this.x + dn[0];
                 let ynn = this.y + dn[1];
-                if (this.world.getParticle(xnn, ynn) instanceof PlantParticle || this.world.getParticle(xnn, ynn) instanceof RootParticle) {
+                if (this.world.getParticle(xnn, ynn) instanceof PlantParticle) {
                     count++;
                 }
             }
 
             if(count < 2){
-                this.delete();
-                neighbour_lower.delete();
+                //delete the seed and soil below and place a plant
+                //50% chance between normal plant and flower
                 let plant_p;
                 if(random() < 0.5){
                     plant_p = new PlantParticle(null, null, this.x, this.y, world)
@@ -662,8 +681,8 @@ class SeedParticle extends SandParticle{
                 }
                 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
-                this.world.addParticle(plant_p);
-                this.world.addParticle(root_p);
+                this.world.addParticle(plant_p, true);
+                this.world.addParticle(root_p, true);
             }else{
                 //if this didnt grow, it degrades
                 this.degrade();
@@ -678,9 +697,7 @@ class SeedParticle extends SandParticle{
     degrade(){
         this.remove_count += 1;
         if(this.remove_count > this.remove_threshhold){
-            this.delete();
-            this.world.addParticle(new Org_FertParticle(this.x, this.y, world));
-            //print('done');
+            this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
         }
     }
 }
@@ -732,25 +749,28 @@ class PlantParticle extends Particle {
         
         if(this.prev[0] && !this.prev[0].next.includes(this)){
             this.prev[0].setNext(this);
-            //print(this.prev, this.prev[0].next);
+            
         }else if(this.next[0] && !this.next[0].prev.includes(this)){
             this.next[0].setPrev(this);
-            //print(this.next, this.next[0].prev);
+
         }
     }
 
+    //add the new previous particle to a list
     setPrev(p){
         if(p){
             append(this.prev, p);
         }
     }
 
+    //add the next next particle to a list
     setNext(p){
         if(p){
             append(this.next, p);
         }
     }
 
+    //set water and change the colour of the plant
     setWater(w) {
         this.watered += w;
         if (this.watered > 0) {
@@ -762,16 +782,19 @@ class PlantParticle extends Particle {
     }
 
     //each plant particle has different grow conditions
-    //they change in this function
+    //plant checks whether tha particle they are going to grow into is empty
     neighbourGrowthChecker(n){
         return !n;
     }
 
     //each plant particle has a different way of retriving nutrients
+    //plant gets nutrients given to it, so nothing happens
     nutrientRetrieval(){
         return;
     }
 
+    //check whether a particle is being represented in the update grid
+    //this is helpful to tell whether something has been deleted
     inGrid(){
         if(this.world.particleGrid[this.x][this.y] == this){
             return true;
@@ -780,17 +803,24 @@ class PlantParticle extends Particle {
         return false;
     }
 
-    // function that uses recursion to destroy part of a list
+    // function that uses recursion to destroy part of a plant
     // checks are used to tell the program which way to go
     destroyLinkedList(prev_check, next_check){
-        //print('destroying');
+
+        //add biomass on top of this particle
         this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true)
+
+        //delete upwards
         if(prev_check == true){
+
+            //for each linked particle, if its not been deleted already, destroy it
             for(i = 0; i < this.prev.length; i++){
                 if(this.prev[i].inGrid()){
                     this.prev[i].destroyLinkedList(true, false);
                 }
             }
+
+        //delete downwards
         }else if(next_check == true){
             for(i = 0; i < this.next.length; i++){
                 if(this.next[i].inGrid()){
@@ -800,24 +830,12 @@ class PlantParticle extends Particle {
         }
     }
 
-    //ensures the links are still connected
-    //destroys particle if not
-    // killPlant(){
-    //     //if the particle has been removed from the particle grid
-    //     //then kill it
-    //     if(this instanceof RootParticle){
-    //         //print('root delete');
-    //         destroyLinkedList(this, false, true);
-    //     }else{
-    //         //print('plant delete');
-    //         destroyLinkedList(this, true, false);
-    //     }
-    // }
-
     update() {
-        //choose a random direction from the top 3 tiles
+        //choose a random direction from the top 3 positions
         let d;
         if (random() < 0.6) {
+            //there is a higher chance the plant will assume one direction
+            //in this case, it is straight up
             d = this.neighbourList[0];
         } else {
             d = random(this.neighbourList.slice(0, 3));
@@ -828,16 +846,12 @@ class PlantParticle extends Particle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        // if(this instanceof FlowerParticle){
-        //     print(this.watered);
-        // }
-
         if (this.watered == 1 && this.length < this.lengthLimit) {
+            //check the growth condition for this plant particle
             if (this.neighbourGrowthChecker(neighbour)) {
                 
                 // Check if the empty space I want to grow into doesn't have too
-                // many root neighbours
-
+                // many neighbours
                 let count = 0;
                 for (let i = 0; i < this.neighbourList.length; i++) {
                     let dn = this.neighbourList[i];
@@ -849,15 +863,13 @@ class PlantParticle extends Particle {
                     }
                 }
 
-                // if(this instanceof FlowerParticle){
-                //     print(count);
-                // }
-                
-                //each plant particle may branch a different number of times
+                //count is to ensure we aren't growing into a crowded space
                 if(count < 2){
+                    //nitrogen increases the chance we will grow
                     if ((random() * this.nitrogen) > 0.5) {
                         let p;
 
+                        //these checks the new particle grows correctly from its parent
                         if(this instanceof HyphaeParticle){ 
                             p = new HyphaeParticle(this, null, xn, yn, world, this.length +1);
                             this.world.addParticle(p, true);
@@ -872,6 +884,7 @@ class PlantParticle extends Particle {
                             this.world.addParticle(p);
                         }
                         
+                        //remove water and nitrogen from the parent
                         this.setWater(-1);
                         if(this.nitrogen == 2){
                             this.nitrogen = 1;
@@ -880,15 +893,15 @@ class PlantParticle extends Particle {
                 }        
             }
 
-            //if the neighbour that I want to grow into isn't soil
-            //give my water and nitrogen upwards
+            //if the neighbour that I want to grow into isn't eligible
+            //give my water and nitrogen upwards to a random parent
             else{
                 let prev_p = random(this.prev);
                 if(prev_p){
                     if(prev_p.watered == 0){
-                        //print('water is moving');
                         this.water_give(this, prev_p);
                     }
+
                     if(prev_p.nitrogen == 1 && this.nitrogen == 2){
                         this.nitrogen_give(this, prev_p);
                     }
@@ -896,6 +909,7 @@ class PlantParticle extends Particle {
         }
 
         }else {
+            //if we havent grown, get nutrients
             this.nutrientRetrieval(neighbour);
         }
 
@@ -914,8 +928,10 @@ class FlowerParticle extends PlantParticle{
         this.lengthLimit = random(5, 15);
         this.petalCount = 0;
 
+        //placing the petal randomly adjacent to it's parent
         this.randomPlacement = [round(random(-1, -1)), round(random(-1, -1))];
 
+        //positions relative to the random placement
         this.flowerList = [
             [this.randomPlacement[0], this.randomPlacement[1]], //down petal
             [this.randomPlacement[0], this.randomPlacement[1]-1], //centre
@@ -927,11 +943,12 @@ class FlowerParticle extends PlantParticle{
     }
 
     update(){
-        //if length is -1 its a petal
+        //if length is -1 the flower particle is a petal
         if(this.length != -1){    
             if(this.length < this.lengthLimit){
                 super.update();
             }else{
+                //create the flower
                 if(this.petalCount < this.flowerList.length){
                     let d = this.flowerList[this.petalCount];
                     let xn = this.x + d[0];
@@ -950,12 +967,11 @@ class FlowerParticle extends PlantParticle{
 
 class RootParticle extends PlantParticle {
 
-    static BASE_COLOR = '#828051';
+    static BASE_COLOR = '#998f36';
 
     constructor(previous, next, x, y, world, length = 0) {
         super(previous, next, x, y, world);
 
-        //previous particle kept to give water
         this.length = length;
         this.neighbourList = [
             //growth positions
@@ -963,11 +979,11 @@ class RootParticle extends PlantParticle {
             [+1, +1], // down right
             [-1, +1], //down left
 
-            [+1, 0], 
-            [-1, 0], 
-            [0, -1],
-            [+1, -1],
-            [-1, -1]
+            [+1, 0], //right
+            [-1, 0], //left
+            [0, -1], //up
+            [+1, -1], //up right
+            [-1, -1] //up left
         ]
 
         //decide bottom left or bottom right placement for hyphae
@@ -989,7 +1005,7 @@ class RootParticle extends PlantParticle {
     }
 
     //each plant particle has different grow conditions
-    //they change in this function
+    //roots need to grow into soil
     neighbourGrowthChecker(n){
         return n instanceof SoilParticle;
     }
@@ -998,13 +1014,11 @@ class RootParticle extends PlantParticle {
         if (neighbour instanceof SoilParticle) {
             //If we don't have nutrients, look for them
             if(neighbour.nitrogen > 0 && this.nitrogen == 1){
-                //print('nitrogen is being taken from the ground');
                 this.nitrogen_give(neighbour, this);
             }
             
             // If we're not watered look for water
             if(neighbour.watered > 0 && this.watered == 0){
-                //print('roots are being watered');
                 this.water_give(neighbour, this);
             }
         }
@@ -1025,7 +1039,9 @@ class HyphaeParticle extends RootParticle{
         this.lengthLimit = 3;
 
         this.neighbourList = [
-            //growth positions but one pixel out
+            //growth positions but one pixel outwards
+            //achieves a dashed look
+
             [-1, +2], //down two, left
             [0, +2], //down two
             [+1, +2], //down two, right
@@ -1047,11 +1063,11 @@ class FluidParticle extends MoveableParticle {
     constructor(x, y, world) {
         super(x, y, world);
         this.updateList = [
-            [+0, +1],
-            [-1, +1],
-            [+1, +1],
-            [-1, +0],
-            [+1, +0]
+            [+0, +1], //down
+            [-1, +1], //down left
+            [+1, +1], //down right
+            [-1, +0], //left
+            [+1, +0] //right
         ];
     }
 
@@ -1094,7 +1110,10 @@ class WaterParticle extends FluidParticle {
     constructor(x, y, world) {
         super(x, y, world);
         this.weight = 60;
+
+        //timer that helps water to not get stuck under soil
         this.waterTimer = random(50, 200);
+
         this.count = 0;
         this.neighbourList = [
             [-1, -1], //up left
@@ -1110,6 +1129,7 @@ class WaterParticle extends FluidParticle {
 
     update() {
         super.update(true);
+
         for(let i = 0; i < this.neighbourList.length; i++) {
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
@@ -1123,6 +1143,9 @@ class WaterParticle extends FluidParticle {
                     neighbour.setWater(1);
                     this.delete();
                     break;
+
+                //otherwise if the water timer is up and you still exist, become lighter than soil
+                //this means the water either saturates different soil, or sits on top.
                 }else{
                     if(this.weight == 60 && this.count > this.waterTimer){
                         this.weight = 40;
@@ -1134,9 +1157,6 @@ class WaterParticle extends FluidParticle {
         this.count += 1;
     }
 
-    evaporate() {
-        this.world.addParticle(new CloudParticle(this.x, this.y, this.world), true);
-    }
 }
 
 
@@ -1159,6 +1179,7 @@ class CloudParticle extends FluidParticle {
             this.condensate();
         }
 
+        //if the cloud isn't moving upwards start condensation
         if (this.y === lastY) {
             this.condensationCountdown--;
         }
@@ -1172,10 +1193,11 @@ class CloudParticle extends FluidParticle {
     }
 }
 
+//function that alters colour with a scale
+//allows easy tuning of colour
 adjustHSBofString = function (colorString, scaleH, scaleS, scaleB) {
     let c = color(colorString);
     colorMode(HSB);
     c = color(hue(c) * scaleH, saturation(c) * scaleS, brightness(c) * scaleB);
-    // colorMode(RGB);
     return c.toString('#rrggbb')
 }
