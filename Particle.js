@@ -327,8 +327,12 @@ class MicrobeParticle extends FallingParticle {
 
         this.energy = 20;
         //the microbe has to wait for 40 frames before moving
-        this.movement_count = 40;
+        this.movement_count = 30;
         //spaces it can move
+
+        //check so it doesn't leave the plant zone
+        this.inRhizosphere = false;
+
         this.neighbourList = [
             [0, -1], //up
             [-1, -1], //up left
@@ -362,16 +366,21 @@ class MicrobeParticle extends FallingParticle {
                 let neighbour = this.world.getParticle(xn, yn);
     
                 if(neighbour instanceof SoilParticle){
-                    //If the soil has good nitrogen, take it
-                    if(this.nitrogen < 2){
-                        neighbour.nitrogen_give(neighbour, this);
+                    if(this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)){
+                        //If the soil has good nitrogen, take it
+                        if(this.nitrogen < 2){
+                            neighbour.nitrogen_give(neighbour, this);
+                        }
+                        
+                        //move the microbe into a new place
+                        //move the soil that was there into our old spot
+                        this.tryGridPosition(xn, yn, true)
+                        neighbour.setState('healthy');
+
+                        if(neighbour.rootBound == true){
+                            this.inRhizosphere = true;
+                        }
                     }
-                    
-                    //move the microbe into a new place
-                    //move the soil that was there into our old spot
-                    this.tryGridPosition(xn, yn, true)
-                    neighbour.setState('healthy');
-    
                 //if ur neighbour is a plant instead, give it your nitrogen
                 }else if(neighbour instanceof PlantParticle && neighbour.nitrogen == 1){
                     neighbour.nitrogen_give(this, neighbour);
