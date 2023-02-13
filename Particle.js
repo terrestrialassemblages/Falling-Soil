@@ -325,6 +325,7 @@ class MicrobeParticle extends FallingParticle {
     constructor(x, y, world){
         super(x, y, world);
 
+        this.energy = 20;
         //the microbe has to wait for 40 frames before moving
         this.movement_count = 40;
         //spaces it can move
@@ -372,17 +373,24 @@ class MicrobeParticle extends FallingParticle {
                     neighbour.setState('healthy');
     
                 //if ur neighbour is a plant instead, give it your nitrogen
-                }else if(neighbour instanceof PlantParticle){
+                }else if(neighbour instanceof PlantParticle && neighbour.nitrogen == 1){
                     neighbour.nitrogen_give(this, neighbour);
-                
+                    this.energy = 20;
+                    this.color = adjustHSBofString(this.color, 1.2, 1.2, 1);
                 }
 
                 //reset movement counter
                 this.movement_count = 40;
+                //reduce energy
+                this.energy--;
             }else{
 
                 //count down to movement
                 this.movement_count -= 1;
+            }
+
+            if(this.energy == 0){
+                this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
             }
         }else{
             //fall if there is nothing beneath or on top of u
@@ -506,6 +514,9 @@ class SoilParticle extends FallingParticle {
         this.color_poor = adjustHSBofString(this.color, 0.5, 1, 1);
         this.weight = 50;
 
+        //tell the soil not to move if it's next to a root
+        this.rootBound = false;
+
         //choose a random soil state with corresponding nitrogen
         if(random() > 0.5){
             state = 'healthy';
@@ -535,7 +546,9 @@ class SoilParticle extends FallingParticle {
     }
 
     update(){
-        super.update();
+        if(this.rootBound == false){
+            super.update();
+        }
     }
 }
 
@@ -808,7 +821,7 @@ class PlantParticle extends Particle {
     destroyLinkedList(prev_check, next_check){
 
         //add biomass on top of this particle
-        this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true)
+        this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
 
         //delete upwards
         if(prev_check == true){
@@ -986,6 +999,31 @@ class RootParticle extends PlantParticle {
             [-1, -1] //up left
         ]
 
+        this.zoneList = [
+            //growth positions
+            [0, +1], //down
+            [+1, +1], // down right
+            [-1, +1], //down left
+
+            [+1, 0], //right
+            [-1, 0], //left
+            [0, -1], //up
+            [+1, -1], //up right
+            [-1, -1], //up left
+
+            //positions but one pixel outwards
+            //for the rhizosphere
+            [-1, +2], //down two, left
+            [0, +2], //down two
+            [+1, +2], //down two, right
+            [+2, +2], //down two, right two
+            [+2, +1], //right two, down
+            [-2, 1], //left two, down
+            [-2, +2] //left tow, down two
+        ]
+
+        this.compactSoil();
+
         //decide bottom left or bottom right placement for hyphae
         let d;
         if (random() < 0.6) {
@@ -1020,6 +1058,20 @@ class RootParticle extends PlantParticle {
             // If we're not watered look for water
             if(neighbour.watered > 0 && this.watered == 0){
                 this.water_give(neighbour, this);
+            }
+        }
+    }
+
+    //tell the soil next to roots not to move
+    compactSoil(){
+        for(let i = 0; i < this.zoneList.length; i++){
+            let d = this.zoneList[i];
+            let xn = this.x + d[0];
+            let yn = this.y + d[1];
+            let neighbour = this.world.getParticle(xn, yn);
+
+            if(neighbour instanceof SoilParticle){
+                neighbour.rootBound = true;
             }
         }
     }
