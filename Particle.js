@@ -703,6 +703,7 @@ class SeedParticle extends FallingParticle{
                 }
                 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
+                root_p.plantDeathCount = random(100, 500);
                 this.world.addParticle(plant_p, true);
                 this.world.addParticle(root_p, true);
             }else{
@@ -762,18 +763,21 @@ class PlantParticle extends Particle {
 
     //connecting the parts of a new particle so that functions can work correctly
     linkTheList(prev, next){
+        //print(this.prev, this.next);
         this.setPrev(prev);
         this.setNext(next);
 
         //if we have a previous particle but the previous particle is not linked to us
         //and vice versa
         //then link it
+
+        //print(prev, next, this.prev, this.next);
         
-        if(this.prev[0] && !this.prev[0].next.includes(this)){
-            this.prev[0].setNext(this);
+        if(this.prev[this.prev.length-1] && !this.prev[this.prev.length-1].next.includes(this)){
+            this.prev[this.prev.length-1].setNext(this);
             
-        }else if(this.next[0] && !this.next[0].prev.includes(this)){
-            this.next[0].setPrev(this);
+        }else if(this.next[this.prev.length-1] && !this.next[this.prev.length-1].prev.includes(this)){
+            this.next[this.prev.length-1].setPrev(this);
 
         }
     }
@@ -834,20 +838,30 @@ class PlantParticle extends Particle {
 
         //delete upwards
         if(prev_check == true){
+            if(this.prev.length != 0){
+                //print(this.prev);
+                //for each linked particle, if its not been deleted already, destroy it
+                for(let i = 0; i < this.prev.length; i++){
+                    if(this instanceof RootParticle){
+                        this.changeSoil(false, true);
+                    }
 
-            //for each linked particle, if its not been deleted already, destroy it
-            for(i = 0; i < this.prev.length; i++){
-                if(this.prev[i].inGrid()){
                     this.prev[i].destroyLinkedList(true, false);
                 }
             }
 
         //delete downwards
         }else if(next_check == true){
-            for(i = 0; i < this.next.length; i++){
-                if(this.next[i].inGrid()){
+            if(this.next.length != 0){
+                //print(this.next);
+                for(let i = 0; i < this.next.length; i++){
+                    if(this instanceof RootParticle){
+                        this.changeSoil(false, true);
+                    }
+                    
                     this.next[i].destroyLinkedList(false, true);
                 }
+
             }
         }
     }
@@ -895,15 +909,19 @@ class PlantParticle extends Particle {
                         if(this instanceof HyphaeParticle){ 
                             p = new HyphaeParticle(this, null, xn, yn, world, this.length +1);
                             this.world.addParticle(p, true);
+                            this.linkTheList(null, p);
                         }else if(this instanceof RootParticle){
                             p = new RootParticle(this, null, xn, yn, world, this.length +1);
                             this.world.addParticle(p, true);
+                            this.linkTheList(null, p);
                         }else if(this instanceof FlowerParticle){
                             p = new FlowerParticle(null, this, xn, yn, world, this.length +1);
                             this.world.addParticle(p);
+                            this.linkTheList(p, null);
                         }else if(this instanceof PlantParticle){
                             p = new PlantParticle(null, this, xn, yn, world, this.length +1);
                             this.world.addParticle(p);
+                            this.linkTheList(p, null);
                         }
                         
                         //remove water and nitrogen from the parent
@@ -977,6 +995,7 @@ class FlowerParticle extends PlantParticle{
                     let yn = this.y + d[1];
 
                     let newPetal = new FlowerParticle(null, this, xn, yn, world, -1);
+                    this.linkTheList(newPetal, null);
                     newPetal.color = this.color_petal;
                     this.world.addParticle(newPetal);
                     this.petalCount += 1;
@@ -1031,7 +1050,9 @@ class RootParticle extends PlantParticle {
             [-2, +2] //left tow, down two
         ]
 
-        this.compactSoil();
+        //this gets changed if this root particle counts down to the plant's death
+        this.plantDeathCount = null;
+        this.changeSoil(true, false);
 
         //decide bottom left or bottom right placement for hyphae
         let d;
@@ -1072,7 +1093,7 @@ class RootParticle extends PlantParticle {
     }
 
     //tell the soil next to roots not to move
-    compactSoil(){
+    changeSoil(compact, uncompact){
         for(let i = 0; i < this.zoneList.length; i++){
             let d = this.zoneList[i];
             let xn = this.x + d[0];
@@ -1080,13 +1101,36 @@ class RootParticle extends PlantParticle {
             let neighbour = this.world.getParticle(xn, yn);
 
             if(neighbour instanceof SoilParticle){
-                neighbour.rootBound = true;
+                if(compact == true){
+                    neighbour.rootBound = true;
+                }else if(uncompact == true){
+                    neighbour.rootBound = false;
+                }
+                
             }
         }
     }
 
     update() {
         super.update();
+        if(this.plantDeathCount != null){
+            this.plantDeathCount--;
+            if(this.plantDeathCount < 0){
+                //destroy this
+                this.destroyLinkedList(false, false);
+
+                //destroy all previous particles
+                for(let i = 0; i < this.prev.length; i++){
+                    this.prev[i].destroyLinkedList(true, false);
+                }
+
+                //destroy all next particles
+                for(let i = 0; i < this.next.length; i++){
+                    this.next[i].destroyLinkedList(false, true);
+                }
+                this.plantDeathCount = null;
+            }
+        }
     }
 
 }
