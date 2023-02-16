@@ -35,6 +35,10 @@ class World {
                 ) {
                     this.addParticle(new IndestructibleWallParticle(x, y, this));
                 }
+
+                if(y > round(this.gridHeight - this.gridHeight / 5)){
+                    this.addParticle(new SoilParticle (x, y, this));
+                }
             }
         }
     }

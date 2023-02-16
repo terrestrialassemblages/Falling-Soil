@@ -34,10 +34,10 @@ const PLACEABLE_TYPES = {
 	'Water': WaterParticle,
 	'Vapour': CloudParticle,
 	'Seed' : SeedParticle,
-	'Germ' : MicrobeParticle,
+	'Microbe' : MicrobeParticle,
 	'Nitrogen' : Syn_FertParticle,
-	'Biomass' : Org_FertParticle,
-	'Mite' : MiteParticle,
+	'Biomass' : BiomassParticle,
+	'Spider' : SpiderParticle,
 }
 
 
@@ -100,10 +100,10 @@ function setup() {
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
 
-	//create sun
-	world.addPlaceable(
-		new SunParentParticle(20, 15, world),
-		true);
+	// //create sun
+	// world.addPlaceable(
+	// 	new SunParentParticle(20, 15, world),
+	// 	true);
 
 	// ******************** SETUP WORLD ********************
 	// world.initializeEmptyGrid();

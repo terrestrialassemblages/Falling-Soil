@@ -59,6 +59,7 @@ class Particle extends Placeable {
             //multiply the colour change so it shows correctly
             if(new_p){
                 n_col = adjustHSBofString(n_col, pow(0.9, water_change), pow(1.1, water_change), pow(0.9, water_change))
+                //print('water colour changed');
             }else{
                 n_col = adjustHSBofString(n_col, 0.9, 1.1, 0.9);
             }
@@ -72,6 +73,7 @@ class Particle extends Placeable {
         if(nitro_change > 1){
             if(new_p){
                 n_col = adjustHSBofString(n_col, pow(0.9, nitro_change-1), pow(0.9, nitro_change-1), pow(1.1, nitro_change-1))
+                //print('nitrogen colour changed');
             }
             else{
                 n_col = adjustHSBofString(n_col, 0.9, 0.9, 1.1);
@@ -110,61 +112,61 @@ class IndestructibleWallParticle extends WallParticle {
     }
 }
 
-//sun parent holds the sun particles
-//that way they can be moved and accessed reliably
-class SunParentParticle extends WallParticle {
-    static BASE_COLOR = '#fcba03';
+// //sun parent holds the sun particles
+// //that way they can be moved and accessed reliably
+// class SunParentParticle extends WallParticle {
+//     static BASE_COLOR = '#fcba03';
 
-    constructor(x, y, world){
-        super(x, y, world);
-        this.indestructible = true;
-        //the list of the printed particles
-        this.sunParticles = [];
+//     constructor(x, y, world){
+//         super(x, y, world);
+//         this.indestructible = true;
+//         //the list of the printed particles
+//         this.sunParticles = [];
 
-        //size of the square * 2
-        this.size = 6;
+//         //size of the square * 2
+//         this.size = 6;
 
-        for(let i = this.size * -1; i <= this.size; i++){
-            for(let j = this.size * -1; j <= this.size; j++){
+//         for(let i = this.size * -1; i <= this.size; i++){
+//             for(let j = this.size * -1; j <= this.size; j++){
 
-                //create a square with removed edges
-                if((i != this.size * -1 && i != this.size) || (j != this.size * -1 && j != this.size)){
-                    let p = new SunChildParticle(this.x + i, this.y + j, world)
-                    this.world.addParticle(p);
-                    append(this.sunParticles, p);
-                }
+//                 //create a square with removed edges
+//                 if((i != this.size * -1 && i != this.size) || (j != this.size * -1 && j != this.size)){
+//                     let p = new SunChildParticle(this.x + i, this.y + j, world)
+//                     this.world.addParticle(p);
+//                     append(this.sunParticles, p);
+//                 }
                 
-            }
-        }
+//             }
+//         }
 
-    }
+//     }
 
-    //this movement code doesnt remove the previous sun particle position
-    //so it just turns into a giant worm on the screen
+//     //this movement code doesnt remove the previous sun particle position
+//     //so it just turns into a giant worm on the screen
 
-    // update(){
-    //     for(let i = 0; i < this.sunParticles.length; i++){
-    //         this.sunParticles[i].movePOS(1, 0);
-    //     }
-    // }
+//     // update(){
+//     //     for(let i = 0; i < this.sunParticles.length; i++){
+//     //         this.sunParticles[i].movePOS(1, 0);
+//     //     }
+//     // }
 
-}
+// }
 
-//sun child particles are what is shown in the program
-class SunChildParticle extends WallParticle{
-    static BASE_COLOR = '#fcba03';
+// //sun child particles are what is shown in the program
+// class SunChildParticle extends WallParticle{
+//     static BASE_COLOR = '#fcba03';
 
-    constructor(x, y, world){
-        super(x, y, world);
-        this.indestructible = true;
-    }
+//     constructor(x, y, world){
+//         super(x, y, world);
+//         this.indestructible = true;
+//     }
 
-    // movePOS(x, y){
-    //     this.x = this.x + x;
-    //     this.y = this.y + y;
-    //     this.world.moveParticleInGrid(this, this.x, this.y);
-    // }
-}
+//     // movePOS(x, y){
+//     //     this.x = this.x + x;
+//     //     this.y = this.y + y;
+//     //     this.world.moveParticleInGrid(this, this.x, this.y);
+//     // }
+// }
 
 
 class MoveableParticle extends Particle {
@@ -325,7 +327,6 @@ class MicrobeParticle extends FallingParticle {
     constructor(x, y, world){
         super(x, y, world);
 
-        this.energy = 20;
         //the microbe has to wait for 40 frames before moving
         this.movement_count = 30;
         //spaces it can move
@@ -366,40 +367,39 @@ class MicrobeParticle extends FallingParticle {
                 let neighbour = this.world.getParticle(xn, yn);
     
                 if(neighbour instanceof SoilParticle){
-                    if(this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)){
-                        //If the soil has good nitrogen, take it
-                        if(this.nitrogen < 2){
-                            neighbour.nitrogen_give(neighbour, this);
-                        }
-                        
-                        //move the microbe into a new place
-                        //move the soil that was there into our old spot
-                        this.tryGridPosition(xn, yn, true)
-                        neighbour.setState('healthy');
-
-                        if(neighbour.rootBound == true){
-                            this.inRhizosphere = true;
+                    if(neighbour.state == 'poor' && random() < 0.4){
+                        this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
+                        //print('bacteria died');
+                    }else{
+                        if(this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)){
+                            //If the soil has good nitrogen, take it
+                            if(this.nitrogen < 2){
+                                neighbour.nitrogen_give(neighbour, this);
+                            }
+                            
+                            //move the microbe into a new place
+                            //move the soil that was there into our old spot
+                            if(neighbour.rootBound == true){
+                                this.inRhizosphere = true;
+                            }
+    
+                            this.tryGridPosition(xn, yn, true)
+                            neighbour.setState('healthy');
+    
                         }
                     }
+ 
                 //if ur neighbour is a plant instead, give it your nitrogen
                 }else if(neighbour instanceof PlantParticle && neighbour.nitrogen == 1){
                     neighbour.nitrogen_give(this, neighbour);
-                    this.energy = 20;
-                    this.color = adjustHSBofString(this.color, 1.2, 1.2, 1);
                 }
 
                 //reset movement counter
                 this.movement_count = 40;
-                //reduce energy
-                this.energy--;
             }else{
 
                 //count down to movement
                 this.movement_count -= 1;
-            }
-
-            if(this.energy == 0){
-                this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
             }
         }else{
             //fall if there is nothing beneath or on top of u
@@ -409,8 +409,8 @@ class MicrobeParticle extends FallingParticle {
     }
 }
 
-class MiteParticle extends FallingParticle {
-    static BASE_COLOR = '#eb34d5'
+class SpiderParticle extends FallingParticle {
+    static BASE_COLOR = '#48636b'
 
     constructor(x, y , world){
         super(x, y, world);
@@ -429,6 +429,7 @@ class MiteParticle extends FallingParticle {
         this.heightLimit;
 
         this.setHeight();
+
         
     }
 
@@ -444,6 +445,12 @@ class MiteParticle extends FallingParticle {
         //check if theres ground beneath the mite
         //if so, reset all the constructors
         let groundCheck = false;
+
+        //eat the biomass under the particle
+        if(this.world.getParticle(this.x, this.y +1) instanceof BiomassParticle && random() < 0.3){
+            this.world.addParticle(new Org_FertParticle (this.x, this.y +1, world), true);
+        }
+
         if(this.world.getParticle(this.x, this.y+1)){
             groundCheck = true;
             this.height = 0;
@@ -571,11 +578,21 @@ class Syn_FertParticle extends FallingParticle {
         this.weight = 60;
         this.nitrogen = 1;
 
+        //counts to decide whether to dissolve syn fert
+        this.remove_count = 0;
+        this.remove_threshhold = random(100, 300);
+
+
         //downwards positions to tell if there is soil to change
         this.neighbourList = [
-            [+0, +1], //down
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, 0], //right
+            [-1, 0], //left
+            [+1, +1], //down right
+            [0, +1], //down
             [-1, +1], //down left
-            [+1, +1] //down right
+            [0, -1] //up
         ]
     }
 
@@ -593,14 +610,25 @@ class Syn_FertParticle extends FallingParticle {
             if(random() < 0.3 && neighbour instanceof SoilParticle){
                 //if the nearest soil is healthy, turn it poor
                 if(neighbour.state == 'healthy'){
+                    //give it your nitrogen and delete this particle
+                    if(neighbour.nitrogen == 1){
+                        neighbour.nitrogen += 1;
+                    }
+
                     neighbour.setState('poor');
 
-                    //give it your nitrogen and delete this particle
-                    neighbour.nitrogen_give(this, neighbour);
                     this.delete();
                     break;
                 }
             }
+        }
+        this.degrade();
+    }
+
+    degrade(){
+        this.remove_count += 1;
+        if(this.remove_count > this.remove_threshhold){
+            this.delete();
         }
     }
 }
@@ -615,15 +643,25 @@ class Org_FertParticle extends FallingParticle {
         this.weight = 60;
         this.nitrogen = 1;
 
+        //timer that helps fert to not get stuck under soil
+        this.fertTimer = random(50, 300);
+        this.count = 0;
+
         this.neighbourList = [
-            [+0, +1], //down
+            [-1, -1], //up left
+            [+1, -1], //up right
+            [+1, 0], //right
+            [-1, 0], //left
+            [+1, +1], //down right
+            [0, +1], //down
             [-1, +1], //down left
-            [+1, +1] //down right
+            [0, -1] //up
         ]
     }
 
     update(){
         super.update();
+
         for(let i = 0; i < this.neighbourList.length; i++) {
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
@@ -633,13 +671,49 @@ class Org_FertParticle extends FallingParticle {
             if(random() < 0.3 && neighbour instanceof SoilParticle){
                 //if the soil is poor, turn it healthy
                 if(neighbour.state == 'poor'){
+                    if(neighbour.nitrogen == 1){
+                        neighbour.nitrogen += 1;
+                    }
+
                     neighbour.setState('healthy');
-                    neighbour.nitrogen_give(this, neighbour);
+
                     this.delete();
                     break;
+                }else if(this.weight == 60 && this.count > this.fertTimer){
+                    this.weight = 40;
+                    this.count = 0;
                 }
             }
         }
+        this.count += 1;
+    }
+}
+
+class BiomassParticle extends FallingParticle {
+    //same code as synthetic fertiliser
+    //but poor soil turns healthy
+    static BASE_COLOR = '#7d3313';
+
+    constructor(x, y, world) {
+        super(x, y, world);
+        this.weight = 45;
+
+        //counts to decide whether to turn the biomass into org fert
+        this.remove_count = 0;
+        this.remove_threshhold = random(200, 1000);
+    }
+
+    //degrading turns the biomass into organic fertiliser
+    degrade(){
+        this.remove_count += 1;
+        if(this.remove_count > this.remove_threshhold){
+            this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
+        }
+    }
+
+    update(){
+        super.update();
+        this.degrade();
     }
 }
 
@@ -650,7 +724,7 @@ class SeedParticle extends FallingParticle{
         super(x, y, world);
         this.weight = 50;
 
-        //counts to decide whether to turn the seed into biomass
+        //counts to decide whether to turn the seed into org fert
         this.remove_count = 0;
         this.remove_threshhold = random(200, 1000);
 
@@ -703,7 +777,7 @@ class SeedParticle extends FallingParticle{
                 }
                 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
-                root_p.plantDeathCount = random(100, 500);
+                root_p.plantDeathCount = random(50, 150);
                 this.world.addParticle(plant_p, true);
                 this.world.addParticle(root_p, true);
             }else{
@@ -720,7 +794,7 @@ class SeedParticle extends FallingParticle{
     degrade(){
         this.remove_count += 1;
         if(this.remove_count > this.remove_threshhold){
-            this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
+            this.world.addParticle(new BiomassParticle(this.x, this.y, world), true);
         }
     }
 }
@@ -834,7 +908,7 @@ class PlantParticle extends Particle {
     destroyLinkedList(prev_check, next_check){
 
         //add biomass on top of this particle
-        this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
+        this.world.addParticle(new BiomassParticle(this.x, this.y, world), true);
 
         //delete upwards
         if(prev_check == true){
@@ -1103,10 +1177,15 @@ class RootParticle extends PlantParticle {
             if(neighbour instanceof SoilParticle){
                 if(compact == true){
                     neighbour.rootBound = true;
+                    if(random() < 0.1){
+                        this.world.addParticle(new MicrobeParticle(neighbour.x, neighbour.y, world), true);
+                    }
                 }else if(uncompact == true){
                     neighbour.rootBound = false;
                 }
                 
+            }if(neighbour instanceof MicrobeParticle){
+                neighbour.inRhizosphere = false;
             }
         }
     }
@@ -1116,8 +1195,6 @@ class RootParticle extends PlantParticle {
         if(this.plantDeathCount != null){
             this.plantDeathCount--;
             if(this.plantDeathCount < 0){
-                //destroy this
-                this.destroyLinkedList(false, false);
 
                 //destroy all previous particles
                 for(let i = 0; i < this.prev.length; i++){
@@ -1129,6 +1206,9 @@ class RootParticle extends PlantParticle {
                     this.next[i].destroyLinkedList(false, true);
                 }
                 this.plantDeathCount = null;
+
+                //destroy this add new seed
+                this.world.addParticle(new SeedParticle(this.x, this.y, world), true);
             }
         }
     }
@@ -1217,7 +1297,7 @@ class WaterParticle extends FluidParticle {
         this.weight = 60;
 
         //timer that helps water to not get stuck under soil
-        this.waterTimer = random(50, 200);
+        this.waterTimer = random(50, 300);
 
         this.count = 0;
         this.neighbourList = [

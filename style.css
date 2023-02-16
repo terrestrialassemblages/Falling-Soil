@@ -113,7 +113,7 @@ input#Seed + label {
   color: black;
 }
 
-input#Germ + label {
+input#Microbe + label {
   background: #a11ee3;
 }
 
@@ -123,12 +123,12 @@ input#Nitrogen + label {
 }
 
 input#Biomass + label {
-  background: #705d4f;
+  background: #7d3313;
   color: black;
 }
 
-input#Mite + label {
-  background: #eb34d5;
+input#Spider + label {
+  background: #48636b;
   color: black;
 }
 
