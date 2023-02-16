@@ -430,6 +430,8 @@ class SpiderParticle extends FallingParticle {
 
         this.setHeight();
 
+        this.lifespan = random(200, 1500);
+
         
     }
 
@@ -511,10 +513,10 @@ class SpiderParticle extends FallingParticle {
 
         //if weve excuted the movement and theres still no ground beneath us
         //fall
-        }else if(this.height < 0 && groundCheck == false){
-            super.update();
-        }
+        }else if(this.height < 0 && groundCheck == false){super.update();}
         
+        count++;
+        if(count > this.lifespan){this.delete();}
     }
 }
 
@@ -894,7 +896,6 @@ class PlantParticle extends Particle {
     }
 
     //check whether a particle is being represented in the update grid
-    //this is helpful to tell whether something has been deleted
     inGrid(){
         if(this.world.particleGrid[this.x][this.y] == this){
             return true;

@@ -27,6 +27,8 @@ let brushSizeSlider;
 let brushSizeDisplay;
 let brushReplaceCheckbox;
 
+let randomSpawnCount = 0;
+
 const AIR_WEIGHT = 1;
 
 const PLACEABLE_TYPES = {
@@ -138,6 +140,7 @@ function draw() {
 	frDisplay.html('Average FPS: ' + floor(averageFrameRate()));
 	numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
 	// noLoop();
+
 }
 
 
