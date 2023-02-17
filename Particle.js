@@ -24,64 +24,64 @@ class Particle extends Placeable {
     }
 
     //v1 is giving its water and v2 is taking
-    water_give(v1, v2){
+    water_give(v1, v2) {
         v1.setWater(-1);
         v2.setWater(1);
     }
 
     //v1 is giving it's nitrogen and v2 is taking
-    nitrogen_give(v1, v2){
+    nitrogen_give(v1, v2) {
         v1.setNitrogen(-1);
         v2.setNitrogen(1);
     }
 
-    setWater(nw){
+    setWater(nw) {
         //everytime water gets more saturated, the colour changes a little
         this.color = this.change_colour(this.color, this.watered);
         this.watered += nw;
-      
+
     }
 
-    setNitrogen(nn){
+    setNitrogen(nn) {
         //everytime there is more nitrogen, the colour changes a little
         this.color = this.change_colour(this.color, 0, this.nitrogen);
         this.nitrogen += nn;
-      
+
     }
 
     //colour change code to apply for water, nitrogen, etc.
     //new_p signifies a new particle, which multiplies the colour change
-    change_colour(colour, water_change = 0, nitro_change = 0, new_p = false){
+    change_colour(colour, water_change = 0, nitro_change = 0, new_p = false) {
         let n_col = colour;
         //water colour change
-        if(water_change > 0){
+        if (water_change > 0) {
             //if the particle is a copy of another one
             //multiply the colour change so it shows correctly
-            if(new_p){
+            if (new_p) {
                 n_col = adjustHSBofString(n_col, pow(0.9, water_change), pow(1.1, water_change), pow(0.9, water_change))
                 //print('water colour changed');
-            }else{
+            } else {
                 n_col = adjustHSBofString(n_col, 0.9, 1.1, 0.9);
             }
 
-        // reversed colour change to bring it back to normal
-        }else if(water_change  == -1){
+            // reversed colour change to bring it back to normal
+        } else if (water_change == -1) {
             n_col = adjustHSBofString(n_col, 1.1, 0.9, 1.1);
         }
 
         //nitrogen colour change
-        if(nitro_change > 1){
-            if(new_p){
-                n_col = adjustHSBofString(n_col, pow(0.9, nitro_change-1), pow(0.9, nitro_change-1), pow(1.1, nitro_change-1))
+        if (nitro_change > 1) {
+            if (new_p) {
+                n_col = adjustHSBofString(n_col, pow(0.9, nitro_change - 1), pow(0.9, nitro_change - 1), pow(1.1, nitro_change - 1))
                 //print('nitrogen colour changed');
             }
-            else{
+            else {
                 n_col = adjustHSBofString(n_col, 0.9, 0.9, 1.1);
             }
-        }else if(nitro_change == -1){
+        } else if (nitro_change == -1) {
             n_col = adjustHSBofString(n_col, 1.1, 1.1, 0.9);
         }
-        
+
         //return the changed colour
         return n_col;
 
@@ -135,7 +135,7 @@ class IndestructibleWallParticle extends WallParticle {
 //                     this.world.addParticle(p);
 //                     append(this.sunParticles, p);
 //                 }
-                
+
 //             }
 //         }
 
@@ -324,7 +324,7 @@ class FallingParticle extends MoveableParticle {
 class MicrobeParticle extends FallingParticle {
     static BASE_COLOR = '#a11ee3';
 
-    constructor(x, y, world){
+    constructor(x, y, world) {
         super(x, y, world);
 
         //the microbe has to wait for 40 frames before moving
@@ -346,73 +346,94 @@ class MicrobeParticle extends FallingParticle {
         ]
     }
 
+    processes(neighbour){
+        if (neighbour instanceof SoilParticle) {
+            if (neighbour.state == 'poor' && random() < 0.4) {
+                this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
+                //print('bacteria died');
+            } else {
+                if (this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)) {
+                    //If the soil has good nitrogen, take it
+                    if (this.nitrogen < 2) {
+                        neighbour.nitrogen_give(neighbour, this);
+                    }
+
+                    //move the microbe into a new place
+                    //move the soil that was there into our old spot
+                    if (neighbour.rootBound == true) {
+                        this.inRhizosphere = true;
+                    }
+
+                    this.tryGridPosition(neighbour.x, neighbour.y, true);
+                    neighbour.setState('healthy');
+
+                }
+            }
+
+        }
+    }
+
     update() {
         // check whether the particle needs to fall
         //ie no ground beneath or above it
         let groundCheck = false;
-        if(this.world.getParticle(this.x, this.y+1) instanceof SoilParticle || this.world.getParticle(this.x, this.y-1) instanceof SoilParticle){
+        if (this.world.getParticle(this.x, this.y + 1) instanceof SoilParticle || this.world.getParticle(this.x, this.y - 1) instanceof SoilParticle) {
             groundCheck = true;
         }
 
-        if(groundCheck == true){
+        if (groundCheck == true) {
             //if the count is up then move
-            if(this.movement_count == 0){
+            if (this.movement_count == 0) {
 
                 //choose a random direction
                 let d = random(this.neighbourList);
-    
+
                 //get new positions and particle
                 let xn = this.x + d[0];
                 let yn = this.y + d[1];
                 let neighbour = this.world.getParticle(xn, yn);
-    
-                if(neighbour instanceof SoilParticle){
-                    if(neighbour.state == 'poor' && random() < 0.4){
-                        this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
-                        //print('bacteria died');
-                    }else{
-                        if(this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)){
-                            //If the soil has good nitrogen, take it
-                            if(this.nitrogen < 2){
-                                neighbour.nitrogen_give(neighbour, this);
-                            }
-                            
-                            //move the microbe into a new place
-                            //move the soil that was there into our old spot
-                            if(neighbour.rootBound == true){
-                                this.inRhizosphere = true;
-                            }
-    
-                            this.tryGridPosition(xn, yn, true)
-                            neighbour.setState('healthy');
-    
-                        }
-                    }
- 
-                //if ur neighbour is a plant instead, give it your nitrogen
-                }else if(neighbour instanceof PlantParticle && neighbour.nitrogen == 1){
-                    neighbour.nitrogen_give(this, neighbour);
-                }
+
+                this.processes(neighbour);
 
                 //reset movement counter
-                this.movement_count = 40;
-            }else{
+                this.movement_count = 30;
+            } else {
 
                 //count down to movement
                 this.movement_count -= 1;
             }
-        }else{
+        } else {
             //fall if there is nothing beneath or on top of u
             super.update();
         }
-        
+
+    }
+}
+
+class ProtozoaParticle extends MicrobeParticle{
+    static BASE_COLOR = '#707070';
+
+    constructor(x, y, world){
+        super(x, y, world);
+    }
+
+    processes(neighbour){
+        if (neighbour instanceof SoilParticle) {
+            this.tryGridPosition(neighbour.x, neighbour.y, true);
+        }else if(neighbour instanceof MicrobeParticle){
+            this.world.addParticle(new SoilParticle(neighbour.x, neighbour.y, true));
+        }
+    }
+
+    update(){
+        super.update();
     }
 }
 
 class SpiderParticle extends FallingParticle {
     static BASE_COLOR = '#48636b'
 
-    constructor(x, y , world){
+    constructor(x, y, world) {
         super(x, y, world);
         // > 0.5 is hopping up and down
         // < 0.5 is doing a big jump left or right
@@ -432,28 +453,28 @@ class SpiderParticle extends FallingParticle {
 
         this.lifespan = random(200, 1500);
 
-        
+
     }
 
-    setHeight(){
-        if(this.hop > 0.5){
+    setHeight() {
+        if (this.hop > 0.5) {
             this.heightLimit = 1;
-        }else{
+        } else {
             this.heightLimit = random(1, 7);
         }
     }
 
-    update(){
+    update() {
         //check if theres ground beneath the mite
         //if so, reset all the constructors
         let groundCheck = false;
 
         //eat the biomass under the particle
-        if(this.world.getParticle(this.x, this.y +1) instanceof BiomassParticle && random() < 0.3){
-            this.world.addParticle(new Org_FertParticle (this.x, this.y +1, world), true);
+        if (this.world.getParticle(this.x, this.y + 1) instanceof BiomassParticle && random() < 0.3) {
+            this.world.addParticle(new Org_FertParticle(this.x, this.y + 1, world), true);
         }
 
-        if(this.world.getParticle(this.x, this.y+1)){
+        if (this.world.getParticle(this.x, this.y + 1)) {
             groundCheck = true;
             this.height = 0;
             this.hop = random();
@@ -465,58 +486,60 @@ class SpiderParticle extends FallingParticle {
         let move;
 
         //movement code
-        if(this.height >= 0){
-            if(this.upCheck == false){
-                if(this.hop > 0.5){
-                    move = this.tryGridPosition(this.x, this.y+1);
+        if (this.height >= 0) {
+            if (this.upCheck == false) {
+                if (this.hop > 0.5) {
+                    move = this.tryGridPosition(this.x, this.y + 1);
                     //print(move, 'hop up');
                     this.upCheck = true;
-                }else{
-                    if(this.direction > 0.5){
-                        move = this.tryGridPosition(this.x-1, this.y+1);
+                } else {
+                    if (this.direction > 0.5) {
+                        move = this.tryGridPosition(this.x - 1, this.y + 1);
                         //print(move, 'up left');
-                    }else{
-                        move = this.tryGridPosition(this.x+1, this.y+1);
+                    } else {
+                        move = this.tryGridPosition(this.x + 1, this.y + 1);
                         //print(move, 'up right');
                     }
                 }
                 this.height--;
-            }else{
-                if(this.hop > 0.5){
-                    move = this.tryGridPosition(this.x, this.y-1);
+            } else {
+                if (this.hop > 0.5) {
+                    move = this.tryGridPosition(this.x, this.y - 1);
                     //print(move, 'hop down');
                     this.upCheck = false;
-                }else{
+                } else {
                     //left
-                    if(this.direction > 0.5){
-                        move = this.tryGridPosition(this.x-1, this.y-1);
+                    if (this.direction > 0.5) {
+                        move = this.tryGridPosition(this.x - 1, this.y - 1);
                         //print(move, 'down left');
-                    }else{
-                        move = this.tryGridPosition(this.x+1, this.y-1);
+                    } else {
+                        move = this.tryGridPosition(this.x + 1, this.y - 1);
                         //print(move, 'down right');
                     }
                 }
                 this.height++;
 
                 //if its reached the height limit go down
-                if(this.height > this.heightLimit){
+                if (this.height > this.heightLimit) {
                     this.upCheck = false;
                 }
-                
+
             }
 
-        //if the movement didnt execute
-        //move to falling
-        if(move == false){
-            this.height = -1;
+            //if the movement didnt execute
+            //move to falling
+            if (move == false) {
+                this.height = -1;
+            }
+
+            //if weve excuted the movement and theres still no ground beneath us
+            //fall
+        } else if (this.height < 0 && groundCheck == false) {
+            super.update();
         }
 
-        //if weve excuted the movement and theres still no ground beneath us
-        //fall
-        }else if(this.height < 0 && groundCheck == false){super.update();}
-        
-        count++;
-        if(count > this.lifespan){this.delete();}
+        this.count++;
+        if (this.count > this.lifespan) { this.delete(); }
     }
 }
 
@@ -536,11 +559,11 @@ class SoilParticle extends FallingParticle {
         this.rootBound = false;
 
         //choose a random soil state with corresponding nitrogen
-        if(random() > 0.5){
+        if (random() > 0.5) {
             state = 'healthy';
             this.nitrogen = 2;
 
-        }else{
+        } else {
             state = 'poor';
             this.nitrogen = 1;
         }
@@ -549,22 +572,22 @@ class SoilParticle extends FallingParticle {
     }
 
     //sets the soil state and alters the colours based on nitrogen and water content
-    setState(ns){
-        if(ns == 'healthy' && this.state != 'healthy'){
+    setState(ns) {
+        if (ns == 'healthy' && this.state != 'healthy') {
             //healthy and compacted dirt have saturation colourings relative to their states
             this.color = this.change_colour(this.color_healthy, this.watered, this.nitrogen, true);
-        }else if(ns == 'poor' && this.state != 'poor'){
+        } else if (ns == 'poor' && this.state != 'poor') {
             this.color = this.change_colour(this.color_poor, this.watered, this.nitrogen, true);
         }
         this.state = ns;
     }
 
-    getWater(){
+    getWater() {
         return this.watered;
     }
 
-    update(){
-        if(this.rootBound == false){
+    update() {
+        if (this.rootBound == false) {
             super.update();
         }
     }
@@ -598,22 +621,22 @@ class Syn_FertParticle extends FallingParticle {
         ]
     }
 
-    update(){
+    update() {
         //falling movement
         super.update();
 
-        for(let i = 0; i < this.neighbourList.length; i++) {
+        for (let i = 0; i < this.neighbourList.length; i++) {
             //get particle
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
             let ynn = this.y + dn[1];
             let neighbour = this.world.getParticle(xnn, ynn);
 
-            if(random() < 0.3 && neighbour instanceof SoilParticle){
+            if (random() < 0.3 && neighbour instanceof SoilParticle) {
                 //if the nearest soil is healthy, turn it poor
-                if(neighbour.state == 'healthy'){
+                if (neighbour.state == 'healthy') {
                     //give it your nitrogen and delete this particle
-                    if(neighbour.nitrogen == 1){
+                    if (neighbour.nitrogen == 1) {
                         neighbour.nitrogen += 1;
                     }
 
@@ -627,9 +650,9 @@ class Syn_FertParticle extends FallingParticle {
         this.degrade();
     }
 
-    degrade(){
+    degrade() {
         this.remove_count += 1;
-        if(this.remove_count > this.remove_threshhold){
+        if (this.remove_count > this.remove_threshhold) {
             this.delete();
         }
     }
@@ -661,19 +684,19 @@ class Org_FertParticle extends FallingParticle {
         ]
     }
 
-    update(){
+    update() {
         super.update();
 
-        for(let i = 0; i < this.neighbourList.length; i++) {
+        for (let i = 0; i < this.neighbourList.length; i++) {
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
             let ynn = this.y + dn[1];
             let neighbour = this.world.getParticle(xnn, ynn);
 
-            if(random() < 0.3 && neighbour instanceof SoilParticle){
+            if (random() < 0.3 && neighbour instanceof SoilParticle) {
                 //if the soil is poor, turn it healthy
-                if(neighbour.state == 'poor'){
-                    if(neighbour.nitrogen == 1){
+                if (neighbour.state == 'poor') {
+                    if (neighbour.nitrogen == 1) {
                         neighbour.nitrogen += 1;
                     }
 
@@ -681,7 +704,7 @@ class Org_FertParticle extends FallingParticle {
 
                     this.delete();
                     break;
-                }else if(this.weight == 60 && this.count > this.fertTimer){
+                } else if (this.weight == 60 && this.count > this.fertTimer) {
                     this.weight = 40;
                     this.count = 0;
                 }
@@ -706,23 +729,23 @@ class BiomassParticle extends FallingParticle {
     }
 
     //degrading turns the biomass into organic fertiliser
-    degrade(){
+    degrade() {
         this.remove_count += 1;
-        if(this.remove_count > this.remove_threshhold){
+        if (this.remove_count > this.remove_threshhold) {
             this.world.addParticle(new Org_FertParticle(this.x, this.y, world), true);
         }
     }
 
-    update(){
+    update() {
         super.update();
         this.degrade();
     }
 }
 
-class SeedParticle extends FallingParticle{
+class SeedParticle extends FallingParticle {
     static BASE_COLOR = '#fcba03';
 
-    constructor(x, y, world){
+    constructor(x, y, world) {
         super(x, y, world);
         this.weight = 50;
 
@@ -741,7 +764,7 @@ class SeedParticle extends FallingParticle{
         ]
     }
 
-    update(){
+    update() {
         //particle above this
         let xu = this.x;
         let yu = this.y - 1;
@@ -755,7 +778,7 @@ class SeedParticle extends FallingParticle{
         //if the particle above this has nothing in it
         //and below us is soil
         //then grow
-        if(!neighbour_upper && neighbour_lower instanceof SoilParticle){
+        if (!neighbour_upper && neighbour_lower instanceof SoilParticle) {
             let count = 0;
 
             //make sure you aren't growing too close to another plant
@@ -768,34 +791,34 @@ class SeedParticle extends FallingParticle{
                 }
             }
 
-            if(count < 2){
+            if (count < 2) {
                 //delete the seed and soil below and place a plant
                 //50% chance between normal plant and flower
                 let plant_p;
-                if(random() < 0.5){
+                if (random() < 0.5) {
                     plant_p = new PlantParticle(null, null, this.x, this.y, world)
-                }else{
+                } else {
                     plant_p = new FlowerParticle(null, null, this.x, this.y, world)
                 }
-                
+
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
                 root_p.plantDeathCount = random(50, 150);
                 this.world.addParticle(plant_p, true);
                 this.world.addParticle(root_p, true);
-            }else{
+            } else {
                 //if this didnt grow, it degrades
                 this.degrade();
             }
-        }else{
+        } else {
             super.update();
             this.degrade();
         }
     }
 
     //degrading turns the seed into organic fertiliser
-    degrade(){
+    degrade() {
         this.remove_count += 1;
-        if(this.remove_count > this.remove_threshhold){
+        if (this.remove_count > this.remove_threshhold) {
             this.world.addParticle(new BiomassParticle(this.x, this.y, world), true);
         }
     }
@@ -818,10 +841,10 @@ class PlantParticle extends Particle {
         this.prev = [];
         this.next = [];
 
-        this.dead= false;
+        this.dead = false;
 
         this.linkTheList(prev, next);
-        
+
 
         this.neighbourList = [
             //growth directions
@@ -838,7 +861,7 @@ class PlantParticle extends Particle {
     }
 
     //connecting the parts of a new particle so that functions can work correctly
-    linkTheList(prev, next){
+    linkTheList(prev, next) {
         //print(this.prev, this.next);
         this.setPrev(prev);
         this.setNext(next);
@@ -848,26 +871,26 @@ class PlantParticle extends Particle {
         //then link it
 
         //print(prev, next, this.prev, this.next);
-        
-        if(this.prev[this.prev.length-1] && !this.prev[this.prev.length-1].next.includes(this)){
-            this.prev[this.prev.length-1].setNext(this);
-            
-        }else if(this.next[this.prev.length-1] && !this.next[this.prev.length-1].prev.includes(this)){
-            this.next[this.prev.length-1].setPrev(this);
+
+        if (this.prev[this.prev.length - 1] && !this.prev[this.prev.length - 1].next.includes(this)) {
+            this.prev[this.prev.length - 1].setNext(this);
+
+        } else if (this.next[this.prev.length - 1] && !this.next[this.prev.length - 1].prev.includes(this)) {
+            this.next[this.prev.length - 1].setPrev(this);
 
         }
     }
 
     //add the new previous particle to a list
-    setPrev(p){
-        if(p){
+    setPrev(p) {
+        if (p) {
             append(this.prev, p);
         }
     }
 
     //add the next next particle to a list
-    setNext(p){
-        if(p){
+    setNext(p) {
+        if (p) {
             append(this.next, p);
         }
     }
@@ -885,19 +908,19 @@ class PlantParticle extends Particle {
 
     //each plant particle has different grow conditions
     //plant checks whether tha particle they are going to grow into is empty
-    neighbourGrowthChecker(n){
+    neighbourGrowthChecker(n) {
         return !n;
     }
 
     //each plant particle has a different way of retriving nutrients
     //plant gets nutrients given to it, so nothing happens
-    nutrientRetrieval(){
+    nutrientRetrieval() {
         return;
     }
 
     //check whether a particle is being represented in the update grid
-    inGrid(){
-        if(this.world.particleGrid[this.x][this.y] == this){
+    inGrid() {
+        if (this.world.particleGrid[this.x][this.y] == this) {
             return true;
         }
 
@@ -906,18 +929,18 @@ class PlantParticle extends Particle {
 
     // function that uses recursion to destroy part of a plant
     // checks are used to tell the program which way to go
-    destroyLinkedList(prev_check, next_check){
+    destroyLinkedList(prev_check, next_check) {
 
         //add biomass on top of this particle
         this.world.addParticle(new BiomassParticle(this.x, this.y, world), true);
 
         //delete upwards
-        if(prev_check == true){
-            if(this.prev.length != 0){
+        if (prev_check == true) {
+            if (this.prev.length != 0) {
                 //print(this.prev);
                 //for each linked particle, if its not been deleted already, destroy it
-                for(let i = 0; i < this.prev.length; i++){
-                    if(this instanceof RootParticle){
+                for (let i = 0; i < this.prev.length; i++) {
+                    if (this instanceof RootParticle) {
                         this.changeSoil(false, true);
                     }
 
@@ -925,15 +948,15 @@ class PlantParticle extends Particle {
                 }
             }
 
-        //delete downwards
-        }else if(next_check == true){
-            if(this.next.length != 0){
+            //delete downwards
+        } else if (next_check == true) {
+            if (this.next.length != 0) {
                 //print(this.next);
-                for(let i = 0; i < this.next.length; i++){
-                    if(this instanceof RootParticle){
+                for (let i = 0; i < this.next.length; i++) {
+                    if (this instanceof RootParticle) {
                         this.changeSoil(false, true);
                     }
-                    
+
                     this.next[i].destroyLinkedList(false, true);
                 }
 
@@ -960,7 +983,7 @@ class PlantParticle extends Particle {
         if (this.watered == 1 && this.length < this.lengthLimit) {
             //check the growth condition for this plant particle
             if (this.neighbourGrowthChecker(neighbour)) {
-                
+
                 // Check if the empty space I want to grow into doesn't have too
                 // many neighbours
                 let count = 0;
@@ -975,55 +998,55 @@ class PlantParticle extends Particle {
                 }
 
                 //count is to ensure we aren't growing into a crowded space
-                if(count < 2){
+                if (count < 2) {
                     //nitrogen increases the chance we will grow
                     if ((random() * this.nitrogen) > 0.5) {
                         let p;
 
                         //these checks the new particle grows correctly from its parent
-                        if(this instanceof HyphaeParticle){ 
-                            p = new HyphaeParticle(this, null, xn, yn, world, this.length +1);
+                        if (this instanceof HyphaeParticle) {
+                            p = new HyphaeParticle(this, null, xn, yn, world, this.length + 1);
                             this.world.addParticle(p, true);
                             this.linkTheList(null, p);
-                        }else if(this instanceof RootParticle){
-                            p = new RootParticle(this, null, xn, yn, world, this.length +1);
+                        } else if (this instanceof RootParticle) {
+                            p = new RootParticle(this, null, xn, yn, world, this.length + 1);
                             this.world.addParticle(p, true);
                             this.linkTheList(null, p);
-                        }else if(this instanceof FlowerParticle){
-                            p = new FlowerParticle(null, this, xn, yn, world, this.length +1);
+                        } else if (this instanceof FlowerParticle) {
+                            p = new FlowerParticle(null, this, xn, yn, world, this.length + 1);
                             this.world.addParticle(p);
                             this.linkTheList(p, null);
-                        }else if(this instanceof PlantParticle){
-                            p = new PlantParticle(null, this, xn, yn, world, this.length +1);
+                        } else if (this instanceof PlantParticle) {
+                            p = new PlantParticle(null, this, xn, yn, world, this.length + 1);
                             this.world.addParticle(p);
                             this.linkTheList(p, null);
                         }
-                        
+
                         //remove water and nitrogen from the parent
                         this.setWater(-1);
-                        if(this.nitrogen == 2){
+                        if (this.nitrogen == 2) {
                             this.nitrogen = 1;
                         }
                     }
-                }        
+                }
             }
 
             //if the neighbour that I want to grow into isn't eligible
             //give my water and nitrogen upwards to a random parent
-            else{
+            else {
                 let prev_p = random(this.prev);
-                if(prev_p){
-                    if(prev_p.watered == 0){
+                if (prev_p) {
+                    if (prev_p.watered == 0) {
                         this.water_give(this, prev_p);
                     }
 
-                    if(prev_p.nitrogen == 1 && this.nitrogen == 2){
+                    if (prev_p.nitrogen == 1 && this.nitrogen == 2) {
                         this.nitrogen_give(this, prev_p);
                     }
                 }
-        }
+            }
 
-        }else {
+        } else {
             //if we havent grown, get nutrients
             this.nutrientRetrieval(neighbour);
         }
@@ -1033,10 +1056,10 @@ class PlantParticle extends Particle {
 
 }
 
-class FlowerParticle extends PlantParticle{
+class FlowerParticle extends PlantParticle {
     static BASE_COLOR = '#84db65';
 
-    constructor(prev, next, x, y, world, length = 0){
+    constructor(prev, next, x, y, world, length = 0) {
         super(prev, next, x, y, world, length);
         this.color_petal = adjustHSBofString('#cc2331', random(0.5, 1.5), 1, 1);
         this.length = length;
@@ -1049,22 +1072,22 @@ class FlowerParticle extends PlantParticle{
         //positions relative to the random placement
         this.flowerList = [
             [this.randomPlacement[0], this.randomPlacement[1]], //down petal
-            [this.randomPlacement[0], this.randomPlacement[1]-1], //centre
-            [this.randomPlacement[0]-1, this.randomPlacement[1]-1], //left petal
-            [this.randomPlacement[0]+1, this.randomPlacement[1]-1], //right petal
-            [this.randomPlacement[0], this.randomPlacement[1]-2], //top petal
+            [this.randomPlacement[0], this.randomPlacement[1] - 1], //centre
+            [this.randomPlacement[0] - 1, this.randomPlacement[1] - 1], //left petal
+            [this.randomPlacement[0] + 1, this.randomPlacement[1] - 1], //right petal
+            [this.randomPlacement[0], this.randomPlacement[1] - 2], //top petal
         ]
 
     }
 
-    update(){
+    update() {
         //if length is -1 the flower particle is a petal
-        if(this.length != -1){    
-            if(this.length < this.lengthLimit){
+        if (this.length != -1) {
+            if (this.length < this.lengthLimit) {
                 super.update();
-            }else{
+            } else {
                 //create the flower
-                if(this.petalCount < this.flowerList.length){
+                if (this.petalCount < this.flowerList.length) {
                     let d = this.flowerList[this.petalCount];
                     let xn = this.x + d[0];
                     let yn = this.y + d[1];
@@ -1076,7 +1099,7 @@ class FlowerParticle extends PlantParticle{
                     this.petalCount += 1;
                 }
             }
-        
+
         }
     }
 }
@@ -1142,50 +1165,50 @@ class RootParticle extends PlantParticle {
         let yn = this.y + d[1];
         let neighbour = this.world.getParticle(xn, yn);
 
-        if(!(this instanceof HyphaeParticle) && random() < 0.1 && neighbour instanceof SoilParticle){
+        if (!(this instanceof HyphaeParticle) && random() < 0.1 && neighbour instanceof SoilParticle) {
             this.world.addParticle(new HyphaeParticle(this, null, xn, yn, world), true);
         }
     }
 
     //each plant particle has different grow conditions
     //roots need to grow into soil
-    neighbourGrowthChecker(n){
+    neighbourGrowthChecker(n) {
         return n instanceof SoilParticle;
     }
 
-    nutrientRetrieval(neighbour){
+    nutrientRetrieval(neighbour) {
         if (neighbour instanceof SoilParticle) {
             //If we don't have nutrients, look for them
-            if(neighbour.nitrogen > 0 && this.nitrogen == 1){
+            if (neighbour.nitrogen > 0 && this.nitrogen == 1) {
                 this.nitrogen_give(neighbour, this);
             }
-            
+
             // If we're not watered look for water
-            if(neighbour.watered > 0 && this.watered == 0){
+            if (neighbour.watered > 0 && this.watered == 0) {
                 this.water_give(neighbour, this);
             }
         }
     }
 
     //tell the soil next to roots not to move
-    changeSoil(compact, uncompact){
-        for(let i = 0; i < this.zoneList.length; i++){
+    changeSoil(compact, uncompact) {
+        for (let i = 0; i < this.zoneList.length; i++) {
             let d = this.zoneList[i];
             let xn = this.x + d[0];
             let yn = this.y + d[1];
             let neighbour = this.world.getParticle(xn, yn);
 
-            if(neighbour instanceof SoilParticle){
-                if(compact == true){
+            if (neighbour instanceof SoilParticle) {
+                if (compact == true) {
                     neighbour.rootBound = true;
-                    if(random() < 0.1){
+                    if (random() < 0.1) {
                         this.world.addParticle(new MicrobeParticle(neighbour.x, neighbour.y, world), true);
                     }
-                }else if(uncompact == true){
+                } else if (uncompact == true) {
                     neighbour.rootBound = false;
                 }
-                
-            }if(neighbour instanceof MicrobeParticle){
+
+            } if (neighbour instanceof MicrobeParticle) {
                 neighbour.inRhizosphere = false;
             }
         }
@@ -1193,17 +1216,17 @@ class RootParticle extends PlantParticle {
 
     update() {
         super.update();
-        if(this.plantDeathCount != null){
+        if (this.plantDeathCount != null) {
             this.plantDeathCount--;
-            if(this.plantDeathCount < 0){
+            if (this.plantDeathCount < 0) {
 
                 //destroy all previous particles
-                for(let i = 0; i < this.prev.length; i++){
+                for (let i = 0; i < this.prev.length; i++) {
                     this.prev[i].destroyLinkedList(true, false);
                 }
 
                 //destroy all next particles
-                for(let i = 0; i < this.next.length; i++){
+                for (let i = 0; i < this.next.length; i++) {
                     this.next[i].destroyLinkedList(false, true);
                 }
                 this.plantDeathCount = null;
@@ -1216,10 +1239,10 @@ class RootParticle extends PlantParticle {
 
 }
 
-class HyphaeParticle extends RootParticle{
+class HyphaeParticle extends RootParticle {
     static BASE_COLOR = '#c9c6b3';
 
-    constructor(previous, next, x, y, world, length = 0){
+    constructor(previous, next, x, y, world, length = 0) {
         super(previous, next, x, y, world);
         this.length = length;
         this.lengthLimit = 3;
@@ -1238,7 +1261,7 @@ class HyphaeParticle extends RootParticle{
         ]
     }
 
-    update(){
+    update() {
         super.update();
     }
 }
@@ -1316,7 +1339,7 @@ class WaterParticle extends FluidParticle {
     update() {
         super.update(true);
 
-        for(let i = 0; i < this.neighbourList.length; i++) {
+        for (let i = 0; i < this.neighbourList.length; i++) {
             let dn = this.neighbourList[i];
             let xnn = this.x + dn[0];
             let ynn = this.y + dn[1];
@@ -1324,16 +1347,16 @@ class WaterParticle extends FluidParticle {
 
             //if the nearest neighbour is soil and it's saturation level is less than 2
             //saturate it and delete this particle
-            if(neighbour instanceof SoilParticle){
-                if((neighbour.state == 'healthy' || (neighbour.state == 'poor' && random() < 0.3)) && neighbour.getWater() < 2){
+            if (neighbour instanceof SoilParticle) {
+                if ((neighbour.state == 'healthy' || (neighbour.state == 'poor' && random() < 0.3)) && neighbour.getWater() < 2) {
                     neighbour.setWater(1);
                     this.delete();
                     break;
 
-                //otherwise if the water timer is up and you still exist, become lighter than soil
-                //this means the water either saturates different soil, or sits on top.
-                }else{
-                    if(this.weight == 60 && this.count > this.waterTimer){
+                    //otherwise if the water timer is up and you still exist, become lighter than soil
+                    //this means the water either saturates different soil, or sits on top.
+                } else {
+                    if (this.weight == 60 && this.count > this.waterTimer) {
                         this.weight = 40;
                         this.count = 0;
                     }

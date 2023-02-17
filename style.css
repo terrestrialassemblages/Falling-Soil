@@ -132,6 +132,11 @@ input#Spider + label {
   color: black;
 }
 
+input#Protozoa + label {
+  background: #707070;
+  color: black;
+}
+
 /* border around labels */
 input[type=radio]:checked + label {
   border-left: solid var(--button-border-width) #ffffff;

@@ -40,6 +40,7 @@ const PLACEABLE_TYPES = {
 	'Nitrogen' : Syn_FertParticle,
 	'Biomass' : BiomassParticle,
 	'Spider' : SpiderParticle,
+	'Protozoa' : ProtozoaParticle,
 }
 
 
@@ -214,7 +215,7 @@ handleMouseClick = function () {
 							}
 						}
 
-						else {
+						else if(action in PLACEABLE_TYPES){
 							//this ensures that the deletion gets recorded and plant death occurs
 							let p = world.getPlaceable(ix, iy);
 							if (p) {
