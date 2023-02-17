@@ -322,10 +322,13 @@ class FallingParticle extends MoveableParticle {
 }
 
 class MicrobeParticle extends FallingParticle {
-    static BASE_COLOR = '#a11ee3';
+    static BASE_COLOR = '#D02F7A';
 
     constructor(x, y, world) {
         super(x, y, world);
+
+        this.colorVariation = adjustHSBofString(this.color, 1, random(0.7, 1.3), 1);
+        this.color = this.colorVariation;
 
         //the microbe has to wait for 40 frames before moving
         this.movement_count = 30;
@@ -411,10 +414,13 @@ class MicrobeParticle extends FallingParticle {
 }
 
 class ProtozoaParticle extends MicrobeParticle{
-    static BASE_COLOR = '#707070';
+    static BASE_COLOR = '#D0852F';
 
     constructor(x, y, world){
         super(x, y, world);
+
+        this.colorVariation = adjustHSBofString(this.color, 1, random(0.7, 1.3), 1);
+        this.color = this.colorVariation;
     }
 
     processes(neighbour){
@@ -431,7 +437,7 @@ class ProtozoaParticle extends MicrobeParticle{
 }
 
 class SpiderParticle extends FallingParticle {
-    static BASE_COLOR = '#48636b'
+    static BASE_COLOR = '#D0342F'
 
     constructor(x, y, world) {
         super(x, y, world);
@@ -441,6 +447,9 @@ class SpiderParticle extends FallingParticle {
         // > 0.5 is left
         // < 0.5 is right
         this.direction = random();
+
+        this.colorVariation = adjustHSBofString(this.color, 1, random(0.7, 1.3), 1);
+        this.color = this.colorVariation;
 
         //the mite starts off by going up
         this.upCheck = true;
@@ -743,7 +752,7 @@ class BiomassParticle extends FallingParticle {
 }
 
 class SeedParticle extends FallingParticle {
-    static BASE_COLOR = '#fcba03';
+    static BASE_COLOR = '#9c8b63';
 
     constructor(x, y, world) {
         super(x, y, world);
@@ -802,7 +811,7 @@ class SeedParticle extends FallingParticle {
                 }
 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
-                root_p.plantDeathCount = random(50, 150);
+                root_p.plantDeathCount = random(500, 1500);
                 this.world.addParticle(plant_p, true);
                 this.world.addParticle(root_p, true);
             } else {
@@ -1061,7 +1070,8 @@ class FlowerParticle extends PlantParticle {
 
     constructor(prev, next, x, y, world, length = 0) {
         super(prev, next, x, y, world, length);
-        this.color_petal = adjustHSBofString('#cc2331', random(0.5, 1.5), 1, 1);
+        //changing of flower colours
+        this.color_petal = adjustHSBofString('#e0d31f', random(0.8, 1.2), 1, 1);
         this.length = length;
         this.lengthLimit = random(5, 15);
         this.petalCount = 0;
