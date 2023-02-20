@@ -78,7 +78,7 @@ function setup() {
 	brushSizeDisplay = createP('');
 	brushSizeDisplay.parent(brushDiv);
 
-	brushSizeSlider = createSlider(1, 5, 2, 1);
+	brushSizeSlider = createSlider(1, 4, 2, 1);
 	brushSizeSlider.parent(brushDiv);
 	brushReplaceCheckbox = createCheckbox('Replace?', true)
 	brushReplaceCheckbox.parent(brushDiv);
@@ -125,7 +125,7 @@ function draw() {
 	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
 	//Remove the low framerate warning message
-	if(floor(averageFrameRate()) > 25){
+	if(floor(averageFrameRate()) > 22){
 		document.getElementById("textDisplay").innerHTML = '';
 	}
 

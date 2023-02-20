@@ -479,11 +479,16 @@ class SpiderParticle extends FallingParticle {
         let groundCheck = false;
 
         //eat the biomass under the particle
-        if (this.world.getParticle(this.x, this.y + 1) instanceof BiomassParticle && random() < 0.3) {
+        let bottomP = this.world.getParticle(this.x, this.y + 1);
+        let topP = this.world.getParticle(this.x, this.y - 1);
+
+        if (bottomP instanceof BiomassParticle && random() < 0.3) {
             this.world.addParticle(new Org_FertParticle(this.x, this.y + 1, world), true);
+        }else if(bottomP instanceof ProtozoaParticle){
+            bottomP.delete();
         }
 
-        if (this.world.getParticle(this.x, this.y + 1)) {
+        if (bottomP) {
             groundCheck = true;
             this.height = 0;
             this.hop = random();
@@ -548,7 +553,7 @@ class SpiderParticle extends FallingParticle {
         }
 
         this.count++;
-        if (this.count > this.lifespan) { this.delete(); }
+        if (this.count > this.lifespan || topP instanceof SoilParticle || topP instanceof WaterParticle || bottomP instanceof WaterParticle) { this.delete(); }
     }
 }
 
@@ -811,7 +816,8 @@ class SeedParticle extends FallingParticle {
                 }
 
                 let root_p = new RootParticle(plant_p, null, xl, yl, world);
-                root_p.plantDeathCount = random(500, 1500);
+                //when will the plant die?
+                root_p.plantDeathCount = random(500, 2500);
                 this.world.addParticle(plant_p, true);
                 this.world.addParticle(root_p, true);
             } else {
@@ -1159,6 +1165,7 @@ class RootParticle extends PlantParticle {
         ]
 
         //this gets changed if this root particle counts down to the plant's death
+        //changes can be found in seed class
         this.plantDeathCount = null;
         this.changeSoil(true, false);
 

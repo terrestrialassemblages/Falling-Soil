@@ -37,7 +37,17 @@ class World {
                 }
 
                 if(y > round(this.gridHeight - this.gridHeight / 5)){
-                    this.addParticle(new SoilParticle (x, y, this));
+                    //randomly add some microbes
+                    if(random() < 0.03){
+                        if(random() < 0.2){
+                            this.addParticle(new MicrobeParticle (x, y, this));
+                        }else{
+                            this.addParticle(new ProtozoaParticle (x, y, this));
+                        }
+                    }else{
+                        this.addParticle(new SoilParticle (x, y, this));
+                    }
+                    
                 }
             }
         }
