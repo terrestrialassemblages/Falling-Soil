@@ -1331,7 +1331,7 @@ class WaterParticle extends FluidParticle {
         this.weight = 60;
 
         //timer that helps water to not get stuck under soil
-        this.waterTimer = random(50, 300);
+        this.waterTimer = random(100, 500);
 
         this.count = 0;
         this.neighbourList = [
@@ -1369,11 +1369,20 @@ class WaterParticle extends FluidParticle {
                     if (this.weight == 60 && this.count > this.waterTimer) {
                         this.weight = 40;
                         this.count = 0;
+                        this.waterTimer = random(50, 1000);
+                    }else if(this.weight == 40 && this.count > this.waterTimer){
+                        if(!this.world.getParticle(this.x, this.y-1)){
+                            this.evaporate();
+                        }
                     }
                 }
             }
         }
         this.count += 1;
+    }
+
+    evaporate(){
+        this.world.addParticle(new CloudParticle(this.x, this.y, this.world), true);
     }
 
 }

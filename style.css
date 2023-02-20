@@ -37,11 +37,33 @@ canvas {
   margin: auto;
   display: flex;
   flex-direction: column;
+  float: left;
+  width: 60%;
 
   justify-content: center;
 
   align-items: center;
+  
+}
+
+#wrapper{
+  overflow: hidden;
   margin-top: 10px;
+  width: 80%;
+}
+
+#button-text{
+  overflow:hidden;
+  padding: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+#particle-selector{
+
+  flex-wrap: wrap;
+
+  align-items: center;
 }
 
 .button-row {

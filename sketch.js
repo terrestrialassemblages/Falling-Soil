@@ -3,6 +3,7 @@ let world;
 
 let canvasContext;
 let numParticleDisplay;
+let githubDisplay;
 
 let frHistory = [];
 let frHistoryIndex = 0;
@@ -28,6 +29,7 @@ let brushSizeDisplay;
 let brushReplaceCheckbox;
 
 let randomSpawnCount = 0;
+let previousAction;
 
 const AIR_WEIGHT = 1;
 
@@ -76,7 +78,7 @@ function setup() {
 	brushSizeDisplay = createP('');
 	brushSizeDisplay.parent(brushDiv);
 
-	brushSizeSlider = createSlider(1, min(10, min(world.gridWidth, world.gridHeight)), 2, 1);
+	brushSizeSlider = createSlider(1, 5, 2, 1);
 	brushSizeSlider.parent(brushDiv);
 	brushReplaceCheckbox = createCheckbox('Replace?', true)
 	brushReplaceCheckbox.parent(brushDiv);
@@ -102,6 +104,8 @@ function setup() {
 	//particle numbers display
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
+	
+
 
 	// //create sun
 	// world.addPlaceable(
@@ -126,6 +130,7 @@ function draw() {
 	}
 
 	handleMouseClick();
+	handleTextDisplay();
 
 	if (!paused) {
 		world.updateAll();
@@ -142,6 +147,32 @@ function draw() {
 	numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
 	// noLoop();
 
+}
+
+handleTextDisplay = function(){
+	let action = radio.value();
+	if(action != previousAction){
+		if(action == 'Soil'){
+			document.getElementById("buttonTextDisplay").innerHTML = 'Soil is home to many organisms beneficial to plant growth. Try placing some seeds and see what happens.';
+		}else if(action == 'Water'){
+			document.getElementById("buttonTextDisplay").innerHTML = 'Water is essential for life.';
+		}else if(action == 'Vapour'){
+			document.getElementById("buttonTextDisplay").innerHTML = 'Evaporated water!';
+		}else if(action == 'Seed'){
+			document.getElementById("buttonTextDisplay").innerHTML = 'Seeds grow plants and flowers in the right conditions. As the roots grow so does its community of beneficial microbes and fungi. <br><br>The white dashed hyphae extending from the roots can be found with almost any plant you pull out from the ground. This is an important fungi/plant relationship that uses the trading of sugars from the plant for beneficial nutrients. <br><br>The pink microbes below need to be eaten by protozoa to release their nutrients, try placing some!';
+		}else if(action == 'Microbe'){
+			document.getElementById("buttonTextDisplay").innerHTML = "Each plant cultivates its own population of good bacteria, much like we do in our gut. These microbes fight off bad bacteria and collect hard-to-get nutrients that the plant can't break down.";
+		}else if(action == 'Protozoa'){
+			document.getElementById("buttonTextDisplay").innerHTML = "Protozoa are the secondary predator in this ecosystem, they feast on microbes and excrete their nutrients for the plant. This isn't their entire purpose, but it's definitely a beneficial food chain for our plants!";
+		}else if(action == "Spider"){
+			document.getElementById("buttonTextDisplay").innerHTML = "Biomass created by decomposing plants can be gobbled up by our spiders to create organic fertiliser for the soil. Not only that, but protozoa are pretty tasty to them too.";
+		}else if(action == "Nitrogen"){
+			document.getElementById("buttonTextDisplay").innerHTML = "This is synthetic fertiliser, a great resource for growing plants but not so great to our soil life. The high salt content in these fertilisers sucks the moisture out of microbes and compacts the soil. Use with caution!";
+		}else if(action == "Biomass"){
+			document.getElementById("buttonTextDisplay").innerHTML = "Biomass has all the good nutrients to support a thriving soil ecosystem.";
+		}
+	}
+	previousAction = action;
 }
 
 
@@ -237,4 +268,5 @@ handleMouseClick = function () {
 		document.getElementById("textDisplay").innerHTML = 'Give the program a moment...';
 	}
 }
+
 
