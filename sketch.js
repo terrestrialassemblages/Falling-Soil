@@ -121,7 +121,8 @@ function setup() {
 }
 
 function draw() {
-	//set the framerate
+	try{
+		//set the framerate
 	frameRate(30)
 
 	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
@@ -147,7 +148,11 @@ function draw() {
 	//show framerate and particle display
 	frDisplay.html('Average FPS: ' + floor(averageFrameRate()));
 	numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
-	// noLoop();
+
+	}catch(err){
+		document.getElementById("textDisplay").innerHTML = "Oops! Looks like you caught a program bug we haven't yet. Sorry about that, just refresh the program and hopefully it doesn't happen again :)";
+	}
+	
 
 }
 
