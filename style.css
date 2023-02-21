@@ -149,13 +149,18 @@ input#Biomass + label {
   color: black;
 }
 
-input#Spider + label {
+input#Bug + label {
   background: #D0342F;
   color: black;
 }
 
 input#Protozoa + label {
   background: #D0852F;
+  color: black;
+}
+
+input#Wall + label {
+  background: #626770;
   color: black;
 }
 

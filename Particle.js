@@ -350,12 +350,13 @@ class MicrobeParticle extends FallingParticle {
     }
 
     processes(neighbour){
-        if (neighbour instanceof SoilParticle) {
+        if (neighbour instanceof SoilParticle || neighbour instanceof Org_FertParticle) {
             if (neighbour.state == 'poor' && random() < 0.4) {
                 this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
                 //print('bacteria died');
             } else {
-                if (this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)) {
+                this.tryGridPosition(neighbour.x, neighbour.y, true);
+                if ((this.inRhizosphere == false || (this.inRhizosphere == true && neighbour.rootBound == true)) && neighbour instanceof SoilParticle) {
                     //If the soil has good nitrogen, take it
                     if (this.nitrogen < 2) {
                         neighbour.nitrogen_give(neighbour, this);
@@ -367,12 +368,13 @@ class MicrobeParticle extends FallingParticle {
                         this.inRhizosphere = true;
                     }
 
-                    this.tryGridPosition(neighbour.x, neighbour.y, true);
                     neighbour.setState('healthy');
 
                 }
             }
 
+        }else if(neighbour instanceof Syn_FertParticle){
+            this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
         }
     }
 
@@ -424,10 +426,12 @@ class ProtozoaParticle extends MicrobeParticle{
     }
 
     processes(neighbour){
-        if (neighbour instanceof SoilParticle) {
+        if (neighbour instanceof SoilParticle || neighbour instanceof Org_FertParticle) {
             this.tryGridPosition(neighbour.x, neighbour.y, true);
         }else if(neighbour instanceof MicrobeParticle){
             this.world.addParticle(new SoilParticle(neighbour.x, neighbour.y, true));
+        }else if(neighbour instanceof Syn_FertParticle){
+            this.world.addParticle(new SoilParticle(this.x, this.y, true));
         }
     }
 
@@ -436,7 +440,7 @@ class ProtozoaParticle extends MicrobeParticle{
     }
 }
 
-class SpiderParticle extends FallingParticle {
+class BugParticle extends FallingParticle {
     static BASE_COLOR = '#D0342F'
 
     constructor(x, y, world) {
@@ -604,6 +608,7 @@ class SoilParticle extends FallingParticle {
         if (this.rootBound == false) {
             super.update();
         }
+        //print('updating');
     }
 }
 
@@ -613,8 +618,7 @@ class Syn_FertParticle extends FallingParticle {
     constructor(x, y, world) {
         super(x, y, world);
 
-        //heavier than soil so will saturate better
-        this.weight = 60;
+        this.weight = random(45, 55);
         this.nitrogen = 1;
 
         //counts to decide whether to dissolve syn fert
@@ -675,11 +679,11 @@ class Syn_FertParticle extends FallingParticle {
 class Org_FertParticle extends FallingParticle {
     //same code as synthetic fertiliser
     //but poor soil turns healthy
-    static BASE_COLOR = '#705d4f';
+    static BASE_COLOR = '#261714';
 
     constructor(x, y, world) {
         super(x, y, world);
-        this.weight = 60;
+        this.weight = random(45, 55);
         this.nitrogen = 1;
 
         //timer that helps fert to not get stuck under soil
@@ -718,9 +722,8 @@ class Org_FertParticle extends FallingParticle {
 
                     this.delete();
                     break;
-                } else if (this.weight == 60 && this.count > this.fertTimer) {
-                    this.weight = 40;
-                    this.count = 0;
+                } else if (this.count > this.fertTimer) {
+                    this.world.addParticle(new SoilParticle(this.x, this.y, world), true);
                 }
             }
         }
@@ -761,7 +764,7 @@ class SeedParticle extends FallingParticle {
 
     constructor(x, y, world) {
         super(x, y, world);
-        this.weight = 50;
+        this.weight = 40;
 
         //counts to decide whether to turn the seed into org fert
         this.remove_count = 0;

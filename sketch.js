@@ -41,8 +41,9 @@ const PLACEABLE_TYPES = {
 	'Microbe' : MicrobeParticle,
 	'Nitrogen' : Syn_FertParticle,
 	'Biomass' : BiomassParticle,
-	'Spider' : SpiderParticle,
+	'Bug' : BugParticle,
 	'Protozoa' : ProtozoaParticle,
+	'Wall' : WallParticle,
 }
 
 
@@ -105,7 +106,8 @@ function setup() {
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
 	
-
+	let radBtnDefault = document.getElementById("Vapour");
+	radBtnDefault.checked = true;
 
 	// //create sun
 	// world.addPlaceable(
@@ -149,6 +151,7 @@ function draw() {
 
 }
 
+//here is where the information text changes
 handleTextDisplay = function(){
 	let action = radio.value();
 	if(action != previousAction){
@@ -164,12 +167,14 @@ handleTextDisplay = function(){
 			document.getElementById("buttonTextDisplay").innerHTML = "Each plant cultivates its own population of good bacteria, much like we do in our gut. These microbes fight off bad bacteria and collect hard-to-get nutrients that the plant can't break down.";
 		}else if(action == 'Protozoa'){
 			document.getElementById("buttonTextDisplay").innerHTML = "Protozoa are the secondary predator in this ecosystem, they feast on microbes and excrete their nutrients for the plant. This isn't their entire purpose, but it's definitely a beneficial food chain for our plants!";
-		}else if(action == "Spider"){
-			document.getElementById("buttonTextDisplay").innerHTML = "Biomass created by decomposing plants can be gobbled up by our spiders to create organic fertiliser for the soil. Not only that, but protozoa are pretty tasty to them too.";
+		}else if(action == "Bug"){
+			document.getElementById("buttonTextDisplay").innerHTML = "Biomass created by decomposing plants can be gobbled up by our bugs to create organic fertiliser for the soil. Not only that, but protozoa are pretty tasty to them too.";
 		}else if(action == "Nitrogen"){
 			document.getElementById("buttonTextDisplay").innerHTML = "This is synthetic fertiliser, a great resource for growing plants but not so great to our soil life. The high salt content in these fertilisers sucks the moisture out of microbes and compacts the soil. Use with caution!";
 		}else if(action == "Biomass"){
 			document.getElementById("buttonTextDisplay").innerHTML = "Biomass has all the good nutrients to support a thriving soil ecosystem.";
+		}else if(action == "Wall"){
+			document.getElementById("buttonTextDisplay").innerHTML = "Walls provide an option to get creative.";
 		}
 	}
 	previousAction = action;
@@ -247,12 +252,6 @@ handleMouseClick = function () {
 						}
 
 						else if(action in PLACEABLE_TYPES){
-							//this ensures that the deletion gets recorded and plant death occurs
-							let p = world.getPlaceable(ix, iy);
-							if (p) {
-								world.deletePlaceable(p);
-							}
-
 							//add particle
 							world.addPlaceable(
 							new PLACEABLE_TYPES[action](ix, iy, world),

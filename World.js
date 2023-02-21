@@ -98,7 +98,7 @@ class World {
     addParticle(p, replace = false) {
         if (this.getParticle(p.x, p.y)) {
             if (replace) {
-                this.placeableSet.delete(this.getParticle(p.x, p.y));
+                this.deletePlaceable(this.getParticle(p.x, p.y));
             }
             else {
                 return;
