@@ -679,7 +679,7 @@ class Syn_FertParticle extends FallingParticle {
 class Org_FertParticle extends FallingParticle {
     //same code as synthetic fertiliser
     //but poor soil turns healthy
-    static BASE_COLOR = '#261714';
+    static BASE_COLOR = '#6F3B2F';
 
     constructor(x, y, world) {
         super(x, y, world);

@@ -34,16 +34,16 @@ let previousAction;
 const AIR_WEIGHT = 1;
 
 const PLACEABLE_TYPES = {
-	'Soil' : SoilParticle,
+	'Soil': SoilParticle,
 	'Water': WaterParticle,
 	'Vapour': CloudParticle,
-	'Seed' : SeedParticle,
-	'Microbe' : MicrobeParticle,
-	'Nitrogen' : Syn_FertParticle,
-	'Biomass' : BiomassParticle,
-	'Bug' : BugParticle,
-	'Protozoa' : ProtozoaParticle,
-	'Wall' : WallParticle,
+	'Seed': SeedParticle,
+	'Microbe': MicrobeParticle,
+	'Nitrogen': Syn_FertParticle,
+	'Biomass': BiomassParticle,
+	'Bug': BugParticle,
+	'Protozoa': ProtozoaParticle,
+	'Wall': WallParticle,
 }
 
 
@@ -105,7 +105,7 @@ function setup() {
 	//particle numbers display
 	numParticleDisplay = createP('');
 	numParticleDisplay.parent('gui-div');
-	
+
 	let radBtnDefault = document.getElementById("Vapour");
 	radBtnDefault.checked = true;
 
@@ -121,65 +121,66 @@ function setup() {
 }
 
 function draw() {
-	try{
+	//error catching part
+	try {
 		//set the framerate
-	frameRate(30)
+		frameRate(30)
 
-	brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
+		brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
-	//Remove the low framerate warning message
-	if(floor(averageFrameRate()) > 22){
-		document.getElementById("textDisplay").innerHTML = '';
-	}
+		//Remove the low framerate warning message
+		if (floor(averageFrameRate()) > 22) {
+			document.getElementById("textDisplay").innerHTML = '';
+		}
 
-	handleMouseClick();
-	handleTextDisplay();
+		handleMouseClick();
+		handleTextDisplay();
 
-	if (!paused) {
-		world.updateAll();
-	}
+		if (!paused) {
+			world.updateAll();
+		}
 
-	canvasContext.save()
+		canvasContext.save()
 
-	// Separate loop for showing because sometimes particles will be moved by others after they update
-	world.showAll(canvasContext, pixelsPerParticle);
-	canvasContext.restore();
+		// Separate loop for showing because sometimes particles will be moved by others after they update
+		world.showAll(canvasContext, pixelsPerParticle);
+		canvasContext.restore();
 
-	//show framerate and particle display
-	frDisplay.html('Average FPS: ' + floor(averageFrameRate()));
-	numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
+		//show framerate and particle display
+		frDisplay.html('Average FPS: ' + floor(averageFrameRate()));
+		numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
 
-	}catch(err){
+	} catch (err) {
 		document.getElementById("textDisplay").innerHTML = "Oops! Looks like you caught a program bug we haven't yet. Sorry about that, just refresh the program and hopefully it doesn't happen again :)";
 	}
-	
+
 
 }
 
 //here is where the information text changes
-handleTextDisplay = function(){
+handleTextDisplay = function () {
 	let action = radio.value();
-	if(action != previousAction){
-		if(action == 'Soil'){
-			document.getElementById("buttonTextDisplay").innerHTML = 'Soil is home to many organisms beneficial to plant growth. Try placing some seeds and see what happens.';
-		}else if(action == 'Water'){
-			document.getElementById("buttonTextDisplay").innerHTML = 'Water is essential for life.';
-		}else if(action == 'Vapour'){
-			document.getElementById("buttonTextDisplay").innerHTML = 'Evaporated water!';
-		}else if(action == 'Seed'){
-			document.getElementById("buttonTextDisplay").innerHTML = 'Seeds grow plants and flowers in the right conditions. As the roots grow so does its community of beneficial microbes and fungi. <br><br>The white dashed hyphae extending from the roots can be found with almost any plant you pull out from the ground. This is an important fungi/plant relationship that uses the trading of sugars from the plant for beneficial nutrients. <br><br>The pink microbes below need to be eaten by protozoa to release their nutrients, try placing some!';
-		}else if(action == 'Microbe'){
-			document.getElementById("buttonTextDisplay").innerHTML = "Each plant cultivates its own population of good bacteria, much like we do in our gut. These microbes fight off bad bacteria and collect hard-to-get nutrients that the plant can't break down.";
-		}else if(action == 'Protozoa'){
-			document.getElementById("buttonTextDisplay").innerHTML = "Protozoa are the secondary predator in this ecosystem, they feast on microbes and excrete their nutrients for the plant. This isn't their entire purpose, but it's definitely a beneficial food chain for our plants!";
-		}else if(action == "Bug"){
-			document.getElementById("buttonTextDisplay").innerHTML = "Biomass created by decomposing plants can be gobbled up by our bugs to create organic fertiliser for the soil. Not only that, but protozoa are pretty tasty to them too.";
-		}else if(action == "Nitrogen"){
-			document.getElementById("buttonTextDisplay").innerHTML = "This is synthetic fertiliser, a great resource for growing plants but not so great to our soil life. The high salt content in these fertilisers sucks the moisture out of microbes and compacts the soil. Use with caution!";
-		}else if(action == "Biomass"){
-			document.getElementById("buttonTextDisplay").innerHTML = "Biomass has all the good nutrients to support a thriving soil ecosystem.";
-		}else if(action == "Wall"){
-			document.getElementById("buttonTextDisplay").innerHTML = "Walls provide an option to get creative.";
+	if (action != previousAction) {
+		if (action == 'Soil') {
+			document.getElementById("buttonTextDisplay").innerHTML = 'Soil is home to many organisms beneficial to plant growth - try placing some seeds and see what happens.';
+		} else if (action == 'Water') {
+			document.getElementById("buttonTextDisplay").innerHTML = 'Water is essential for life and helps plants grow.';
+		} else if (action == 'Vapour') {
+			document.getElementById("buttonTextDisplay").innerHTML = 'Vapour is evaporated water and falls like rain.';
+		} else if (action == 'Seed') {
+			document.getElementById("buttonTextDisplay").innerHTML = 'Seeds grow plants and flowers in the right conditions. As the roots grow so does its community of beneficial microbes and fungi. <br><br>The white dashed hyphae extending from the roots can be found with almost any plant you pull out from the ground. This is an important fungi/plant relationship that uses the trading of sugars from the plant for beneficial nutrients. <br><br>The pink microbes below need to be eaten by protozoa to release their nutrients - try placing some!';
+		} else if (action == 'Microbe') {
+			document.getElementById("buttonTextDisplay").innerHTML = "Microbes, each plant cultivates its own population of good bacteria, much like we do in our gut. These microbes fight off bad bacteria and collect hard-to-get nutrients that the plant can't break down.";
+		} else if (action == 'Protozoa') {
+			document.getElementById("buttonTextDisplay").innerHTML = "Protozoa are the secondary predators in this ecosystem, they feast on microbes and excrete their nutrients for the plant - this isn't their entire purpose, but it's definitely a beneficial food chain for our plants!";
+		} else if (action == "Bug") {
+			document.getElementById("buttonTextDisplay").innerHTML = "Bugs gobble up biomass created by decomposing plants to create organic fertiliser for the soil -  not only that, but protozoa are pretty tasty to them too.";
+		} else if (action == "Nitrogen") {
+			document.getElementById("buttonTextDisplay").innerHTML = "Nitrogen or synthetic fertiliser is a great resource for growing plants but not so great to our soil life - the high salt content in these fertilisers sucks the moisture out of microbes and compacts the soil. Use with caution!";
+		} else if (action == "Biomass") {
+			document.getElementById("buttonTextDisplay").innerHTML = "Biomass has all the good nutrients to support a thriving soil ecosystem - when it is eaten by protozoa it becomes organic fertilizer.";
+		} else if (action == "Wall") {
+			document.getElementById("buttonTextDisplay").innerHTML = "Walls provide an option to be creative - try creating a hanging garden or and irrigation system.";
 		}
 	}
 	previousAction = action;
@@ -256,19 +257,19 @@ handleMouseClick = function () {
 							}
 						}
 
-						else if(action in PLACEABLE_TYPES){
+						else if (action in PLACEABLE_TYPES) {
 							//add particle
 							world.addPlaceable(
-							new PLACEABLE_TYPES[action](ix, iy, world),
-							brushReplaceCheckbox.checked());
+								new PLACEABLE_TYPES[action](ix, iy, world),
+								brushReplaceCheckbox.checked());
 						}
 					}
 				}
 			}
 		}
 
-	//show error message if framerate is too high
-	}else if (mouseIsPressed){
+		//show error message if framerate is too high
+	} else if (mouseIsPressed) {
 		document.getElementById("textDisplay").innerHTML = 'Give the program a moment...';
 	}
 }
