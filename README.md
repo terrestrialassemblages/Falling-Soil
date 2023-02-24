@@ -4,6 +4,7 @@ Falling soil 1.0, Terrestrial Assemblages (Summer 2023: Rikka Ly, Simon Ingram).
 
 Click [here](https://terrestrialassemblages.github.io/Falling-Soil/) to run the app.
 <a href="https://terrestrialassemblages.github.io/Falling-Soil/" target="_blank">click here</a>
+<a href="https://www.freecodecamp.org/" target="_blank">freeCodeCamp</a>
 
 ## Particle Types:
 - VAPR: Vapour is evaporated water and falls like rain.
