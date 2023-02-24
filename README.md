@@ -2,7 +2,7 @@
 
 Falling soil 1.0, Terrestrial Assemblages (Summer 2023: Rikka Ly, Simon Ingram). This web app uses ideas and approaches from falling sand games and applies them to model a plant-microbial system where the user can add elements and learn something of their purpose in the system. Code was developed from a falling sand program found [here.](https://github.com/ObviousNonsense/FallingSand)
 
-Click [here](https://rikkaly.github.io/FallingPlantCycle/) to run the app.
+Click [here](https://terrestrialassemblages.github.io/Falling-Soil/) to run the app.
 
 ## Particle Types:
 - VAPR: Vapour is evaporated water and falls like rain.
