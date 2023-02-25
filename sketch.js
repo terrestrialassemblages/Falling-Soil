@@ -151,7 +151,7 @@ function draw() {
 		numParticleDisplay.html('Number of Particles: ' + world.placeableSet.size);
 
 	} catch (err) {
-		document.getElementById("textDisplay").innerHTML = "Oops! Looks like you caught a program bug we haven't yet. Sorry about that, just refresh the program and hopefully it doesn't happen again :)";
+		document.getElementById("textDisplay").innerHTML = "Oops! Looks like you caught a program bug we haven't yet. Sorry about that, just refresh the program and hopefully it doesn't happen again :) If you're still encountering bugs, try a different browser (Chrome, Edge, Firefox, Opera, or Safari)";
 	}
 
 
