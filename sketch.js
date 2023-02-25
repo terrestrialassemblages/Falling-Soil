@@ -124,12 +124,12 @@ function draw() {
 	//error catching part
 	try {
 		//set the framerate
-		frameRate(30)
+		frameRate(24)
 
 		brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
 		//Remove the low framerate warning message
-		if (floor(averageFrameRate()) > 22) {
+		if (floor(averageFrameRate()) > 20) {
 			document.getElementById("textDisplay").innerHTML = '';
 		}
 
@@ -230,7 +230,7 @@ resetWorld = function () {
 
 handleMouseClick = function () {
 	//only allow the adding of pixels if the framerate is above 25
-	if (mouseIsPressed && floor(averageFrameRate()) > 25) {
+	if (mouseIsPressed && floor(averageFrameRate()) > 20) {
 		let x = floor(mouseX / pixelsPerParticle);
 		let y = floor(mouseY / pixelsPerParticle);
 
