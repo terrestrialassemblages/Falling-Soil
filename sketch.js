@@ -124,7 +124,7 @@ function draw() {
 	//error catching part
 	try {
 		//set the framerate
-		frameRate(24)
+		frameRate(30);
 
 		brushSizeDisplay.html('Brush Size: ' + brushSizeSlider.value());
 
@@ -229,7 +229,7 @@ resetWorld = function () {
 
 
 handleMouseClick = function () {
-	//only allow the adding of pixels if the framerate is above 25
+	//only allow the adding of pixels if the framerate is above 20
 	if (mouseIsPressed && floor(averageFrameRate()) > 20) {
 		let x = floor(mouseX / pixelsPerParticle);
 		let y = floor(mouseY / pixelsPerParticle);
