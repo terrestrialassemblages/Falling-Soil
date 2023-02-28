@@ -1,4 +1,4 @@
-# Falling Sand Sim
+# Falling Soil
 
 <i>Falling soil 1.0</i>, Terrestrial Assemblages (Summer 2023: Rikka Ly, Simon Ingram). This web app uses ideas and approaches from falling sand games and applies them to model a plant-microbial system where the user can add elements and learn something of their purpose in the system. Code was developed from an existing falling sand game which can be found [here.](https://github.com/ObviousNonsense/FallingSand)
 
